@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-Frame-Options" content="ALLOWALL">
+<meta http-equiv="Content-Security-Policy" content="frame-ancestors *">
+<title>WHC Sunday Pitch Planner</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+:root{
+  --g9:#111418;--g7:#2e3440;--g5:#5a6578;--g3:#c8cdd6;--g1:#f0f2f5;--g0:#f8f9fa;
+  --white:#fff;--border:#e2e6ec;
+  --green:#2d9e68;--green-l:#e8f5ee;--green-d:#0f5c3a;
+  --blue:#3670c8;--blue-l:#e8f0fb;--blue-d:#1a3f8a;
+  --amber:#d4780a;--amber-l:#fdf0e0;--amber-d:#7a3a00;
+  --red:#c83636;--red-l:#fde8e8;--red-d:#7a0000;
+  --purple:#7d3c98;--purple-l:#f5eefb;--purple-d:#4a235a;
+  --away:#3d3d3d;--away-l:#f2f2f2;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--g0);color:var(--g9);min-height:100vh;}
+
+header{background:var(--g9);padding:0 20px;display:flex;align-items:center;gap:12px;height:52px;position:sticky;top:0;z-index:100;}
+.club-badge{width:30px;height:30px;background:var(--green);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0;}
+.hdr-text{flex:1;min-width:0;}
+.hdr-title{font-size:13px;font-weight:500;color:#fff;}
+.hdr-sub{font-size:11px;color:rgba(255,255,255,.4);}
+.week-nav{display:flex;align-items:center;gap:6px;margin-left:auto;}
+.wnav-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .12s;flex-shrink:0;}
+.wnav-btn:hover{background:rgba(255,255,255,.18);}
+.week-label{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.65);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);padding:4px 10px;border-radius:6px;white-space:nowrap;cursor:pointer;min-width:180px;text-align:center;}
+.week-label:hover{background:rgba(255,255,255,.14);}
+.week-select{font-family:'DM Mono',monospace;font-size:11px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 8px;border-radius:6px;outline:none;display:none;min-width:180px;}
+.week-select.open{display:block;}
+
+.toolbar{display:flex;align-items:center;gap:10px;padding:8px 20px;background:var(--white);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.legend{display:flex;gap:12px;flex-wrap:wrap;}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--g5);}
+.lsw{width:9px;height:9px;border-radius:2px;border-left:3px solid;}
+.lsw.training{background:var(--green-l);border-color:var(--green);}
+.lsw.fixture{background:var(--blue-l);border-color:var(--blue);}
+.lsw.gk{background:var(--amber-l);border-color:var(--amber);}
+.lsw.away-t{background:var(--away-l);border-color:var(--away);}
+.lsw.indoor{background:var(--purple-l);border-color:var(--purple);}
+.tbtn{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:500;color:var(--g5);cursor:pointer;padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;transition:all .12s;user-select:none;white-space:nowrap;}
+.tbtn:hover{background:var(--g1);}
+.tbtn.active{background:var(--g9);color:#fff;border-color:var(--g9);}
+.tdot{width:6px;height:6px;border-radius:50%;background:var(--g3);}
+.tbtn.active .tdot{background:#4ade80;}
+
+.page-body{display:flex;gap:14px;padding:16px 20px;align-items:flex-start;}
+.grid-wrap{flex:1;overflow-x:auto;min-width:0;}
+
+/* ── Pitch grid ── */
+.grid{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;min-width:700px;}
+.grid-head{display:grid;grid-template-columns:58px repeat(4,1fr) 180px;border-bottom:2px solid var(--border);}
+.col-head{padding:8px 10px;border-right:1px solid var(--border);}
+.col-head:last-child{border-right:none;}
+.chl{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;margin-bottom:1px;}
+.cha{font-size:9px;color:var(--g5);font-family:'DM Mono',monospace;}
+.col-whs .chl{color:#0f5c3a;}
+.col-rphs .chl{color:#1a3f8a;}
+.col-kcspp .chl,.col-kcstt .chl{color:#6b1a6b;}
+.col-away-hd .chl{color:#3d3d3d;}
+.time-head{padding:8px 6px;border-right:1px solid var(--border);background:var(--g0);}
+table.pt{width:100%;border-collapse:collapse;table-layout:fixed;}
+table.pt col.tc{width:58px;}
+table.pt col.ac{width:180px;}
+td.time-cell{font-family:'DM Mono',monospace;font-size:9px;color:var(--g5);padding:5px 5px;background:var(--g0);border-right:1px solid var(--border);border-bottom:1px solid var(--border);vertical-align:top;white-space:nowrap;}
+td.slot{padding:3px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);vertical-align:top;}
+td.slot:last-child{border-right:none;}
+td.away-slot{padding:3px;border-bottom:1px solid var(--border);vertical-align:top;background:#fafafa;}
+tr:last-child td{border-bottom:none;}
+
+/* Session cards */
+.scard{border-radius:5px;padding:5px 7px;margin-bottom:2px;border-left:3px solid;position:relative;}
+.scard.training{background:var(--green-l);border-color:var(--green);}
+.scard.fixture{background:var(--blue-l);border-color:var(--blue);}
+.scard.gk{background:var(--amber-l);border-color:var(--amber);}
+.scard.away{background:var(--away-l);border-color:var(--away);}
+.scard.indoor{background:var(--purple-l);border-color:var(--purple);}
+
+.sage{font-size:11px;font-weight:500;line-height:1.3;color:var(--g9);padding-right:14px;display:flex;align-items:baseline;gap:5px;}
+.sage-txt{flex:1;}
+.player-count{font-size:10px;font-weight:600;background:rgba(0,0,0,.08);color:var(--g7);padding:1px 5px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
+
+.stags{margin-top:3px;display:flex;flex-wrap:wrap;gap:2px;}
+.ctag{font-size:9px;font-weight:500;padding:1px 5px;border-radius:20px;white-space:nowrap;color:#fff;display:inline-flex;align-items:center;gap:3px;}
+.ctag-role{font-size:8px;font-weight:700;opacity:.85;letter-spacing:.03em;}
+.sdel,.sedit{position:absolute;border:none;border-radius:3px;cursor:pointer;font-size:10px;color:var(--g7);display:none;align-items:center;justify-content:center;padding:0;width:14px;height:14px;} .sdel{top:3px;right:3px;background:rgba(0,0,0,.1);} .sedit{top:3px;right:20px;background:rgba(0,0,0,.08);}
+.edit-mode .scard:hover .sdel,.edit-mode .scard:hover .sedit{display:flex;}
+.add-card{border:1.5px dashed var(--border);border-radius:5px;padding:5px;display:none;align-items:center;justify-content:center;cursor:pointer;color:var(--g3);font-size:16px;min-height:28px;transition:all .12s;margin-bottom:2px;}
+.add-card:hover{border-color:var(--g5);color:var(--g5);background:var(--g1);}
+.edit-mode .add-card{display:flex;}
+
+/* Away card */
+.away-card{border-radius:5px;padding:5px 7px;margin-bottom:2px;background:var(--away-l);border-left:3px solid var(--away);position:relative;}
+.away-age{font-size:11px;font-weight:500;color:var(--g9);padding-right:14px;display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;}
+.away-opp{font-size:10px;font-weight:600;color:#3d3d3d;}
+.away-addr{font-size:9px;color:var(--g5);margin-top:2px;font-family:'DM Mono',monospace;line-height:1.4;word-break:break-word;}
+.away-map-link{font-size:9px;color:var(--blue-d);text-decoration:none;display:inline-block;margin-top:2px;}
+.away-map-link:hover{text-decoration:underline;}
+.away-coach-tags{margin-top:3px;display:flex;flex-wrap:wrap;gap:2px;}
+.away-del,.away-edit{position:absolute;border:none;border-radius:3px;cursor:pointer;font-size:10px;color:var(--g7);display:none;align-items:center;justify-content:center;padding:0;width:14px;height:14px;} .away-del{top:3px;right:3px;background:rgba(0,0,0,.1);} .away-edit{top:3px;right:20px;background:rgba(0,0,0,.08);}
+.edit-mode .away-card:hover .away-del,.edit-mode .away-card:hover .away-edit{display:flex;}
+.add-away-card{border:1.5px dashed #ccc;border-radius:5px;padding:5px;display:none;align-items:center;justify-content:center;cursor:pointer;color:#ccc;font-size:16px;min-height:28px;transition:all .12s;margin-bottom:2px;}
+.add-away-card:hover{border-color:var(--g5);color:var(--g5);background:var(--g1);}
+.edit-mode .add-away-card{display:flex;}
+
+/* Dim highlight */
+.dim .scard{opacity:.14;}
+.dim .scard.hl-card{opacity:1;}
+.dim .away-card{opacity:.5;}
+.dim .away-card.hl-card{opacity:1;}
+
+/* ── Side panel ── */
+.side-panel{width:178px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;position:sticky;top:68px;}
+.panel-box{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.panel-hdr{padding:8px 12px;border-bottom:1px solid var(--border);background:var(--g0);}
+.panel-hdr-title{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--g5);}
+.panel-body{padding:6px 8px;}
+.key-list{max-height:260px;overflow-y:auto;}
+.key-item{display:flex;align-items:center;gap:7px;padding:3px 4px;border-radius:5px;cursor:pointer;transition:background .1s;user-select:none;}
+.key-item:hover{background:var(--g1);}
+.key-item.hl{background:var(--g1);}
+.kdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.kname{font-size:11px;color:var(--g7);}
+.key-item.hl .kname{font-weight:600;}
+.role-row{display:flex;align-items:center;gap:7px;padding:3px 4px;}
+.role-badge{font-size:9px;font-weight:700;background:var(--g9);color:#fff;padding:2px 5px;border-radius:3px;min-width:22px;text-align:center;letter-spacing:.03em;}
+.role-label{font-size:11px;color:var(--g7);}
+.wk-item{display:flex;align-items:center;justify-content:space-between;padding:4px 6px;border-radius:5px;cursor:pointer;transition:background .1s;font-size:11px;color:var(--g7);}
+.wk-item:hover{background:var(--g1);}
+.wk-item.current{background:var(--g9);color:#fff;font-weight:500;}
+.wk-del{font-size:13px;color:var(--g5);background:none;border:none;cursor:pointer;padding:0 2px;display:none;line-height:1;}
+.wk-item:hover .wk-del{display:block;}
+.wk-item.current .wk-del{color:rgba(255,255,255,.4);}
+.add-week-btn{display:flex;align-items:center;justify-content:center;gap:4px;padding:5px;font-size:11px;color:var(--g5);cursor:pointer;border-top:1px solid var(--border);margin-top:4px;transition:background .1s;}
+.add-week-btn:hover{background:var(--g1);color:var(--g9);}
+
+/* ── Modals ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:16px;}
+.overlay.open{display:flex;}
+.modal{background:var(--white);border-radius:10px;width:100%;max-width:420px;box-shadow:0 16px 50px rgba(0,0,0,.2);max-height:92vh;overflow-y:auto;}
+.mhdr{padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;position:sticky;top:0;background:var(--white);z-index:1;}
+.mtitle{font-size:14px;font-weight:600;}
+.mmeta{font-size:10px;color:var(--g5);font-family:'DM Mono',monospace;margin-top:1px;}
+.mclose{background:none;border:none;cursor:pointer;color:var(--g5);font-size:18px;line-height:1;padding:0;}
+.mbody{padding:12px 18px;}
+.field{margin-bottom:10px;}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--g7);margin-bottom:3px;}
+.field input,.field select,.field textarea{width:100%;font-family:'DM Sans',sans-serif;font-size:12px;padding:6px 9px;border:1px solid var(--border);border-radius:6px;background:var(--white);color:var(--g9);outline:none;}
+.field textarea{resize:vertical;min-height:52px;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--g5);}
+.fnote{font-size:10px;color:var(--g5);margin-top:3px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.coaches-builder{border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.cb-row{display:grid;grid-template-columns:1fr 28px;gap:4px;padding:5px 7px;border-bottom:1px solid var(--border);align-items:center;}
+.cb-row:last-child{border-bottom:none;}
+.cb-info{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.cb-role-badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;color:#fff;}
+.cb-name-txt{font-size:11px;color:var(--g9);}
+.cb-del{background:none;border:none;cursor:pointer;color:var(--g5);font-size:14px;padding:0;line-height:1;}
+.cb-del:hover{color:var(--red);}
+.cb-add{display:grid;grid-template-columns:1fr 100px auto;gap:4px;padding:6px 7px;background:var(--g0);}
+.cb-add input,.cb-add select{font-size:11px;padding:4px 7px;}
+.cb-add-btn{font-size:11px;padding:4px 10px;background:var(--g9);color:#fff;border:none;border-radius:5px;cursor:pointer;white-space:nowrap;}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.topt{padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px;transition:all .1s;user-select:none;}
+.topt .dot{width:7px;height:7px;border-radius:2px;flex-shrink:0;}
+.topt[data-t="training"] .dot{background:var(--green);}
+.topt[data-t="fixture"] .dot{background:var(--blue);}
+.topt[data-t="gk"] .dot{background:var(--amber);}
+.topt[data-t="away"] .dot{background:var(--away);}
+.topt[data-t="indoor"] .dot{background:var(--purple);}
+.topt.sel[data-t="training"]{background:var(--green-l);border-color:var(--green);color:var(--green-d);}
+.topt.sel[data-t="fixture"]{background:var(--blue-l);border-color:var(--blue);color:var(--blue-d);}
+.topt.sel[data-t="gk"]{background:var(--amber-l);border-color:var(--amber);color:var(--amber-d);}
+.topt.sel[data-t="away"]{background:var(--away-l);border-color:var(--away);color:#3d3d3d;}
+.topt.sel[data-t="indoor"]{background:var(--purple-l);border-color:var(--purple);color:var(--purple-d);}
+.mftr{padding:8px 18px 12px;display:flex;gap:7px;justify-content:flex-end;border-top:1px solid var(--border);position:sticky;bottom:0;background:var(--white);}
+.btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:7px 16px;border-radius:6px;border:none;cursor:pointer;transition:all .12s;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--g7);}
+.btn-ghost:hover{background:var(--g1);}
+.btn-pri{background:var(--g9);color:#fff;}
+.btn-pri:hover{background:var(--g7);}
+
+.print-hint{text-align:center;padding:8px;font-size:10px;color:var(--g3);}
+.page-heading{padding:20px 20px 0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+.page-heading h1{font-size:22px;font-weight:600;color:var(--g9);letter-spacing:-0.02em;}
+.page-heading .week-tag{font-size:13px;font-weight:500;color:var(--g5);background:var(--g1);border:1px solid var(--border);padding:3px 10px;border-radius:20px;font-family:'DM Mono',monospace;}
+@media print{header,.toolbar,.print-hint,.side-panel,.tbtn{display:none;}.page-body{padding:0;}.grid-wrap{overflow:visible;}.grid{border-radius:0;border:none;min-width:unset;}.add-card,.add-away-card{display:none!important;}body{background:#fff;}.grid-head{grid-template-columns:52px repeat(4,1fr) 200px;}}
+@media(max-width:700px){.page-body{flex-direction:column;}.side-panel{width:100%;position:static;flex-direction:row;flex-wrap:wrap;}.panel-box{flex:1;min-width:140px;}.key-list{max-height:180px;}}
+.view-tabs{display:flex;gap:4px;margin-left:auto;margin-right:8px;}.vtab{font-size:12px;font-weight:500;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--g5);cursor:pointer;transition:all .12s;}.vtab:hover{background:var(--g1);}.vtab.active{background:var(--g9);color:#fff;border-color:var(--g9);}
+/* Midweek */
+.mw-wrap{display:none;padding:16px 20px;}
+.mw-wrap.visible{display:block;}
+.day-cols{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.day-col{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.day-hdr{padding:8px 12px;background:var(--g9);}
+.day-name{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#fff;}
+.day-date{font-size:10px;color:rgba(255,255,255,.5);margin-top:1px;font-family:"DM Mono",monospace;}
+.day-body{padding:6px;}
+.mw-card{border-radius:6px;padding:6px 8px;margin-bottom:4px;border-left:3px solid;position:relative;}
+.mw-card.training{background:var(--green-l);border-color:var(--green);}
+.mw-card.fixture{background:var(--blue-l);border-color:var(--blue);}
+.mw-card.gk{background:var(--amber-l);border-color:var(--amber);}
+.mw-card.indoor{background:var(--purple-l);border-color:var(--purple);}
+.mw-card.away{background:var(--away-l);border-color:var(--away);}
+.mw-time{font-family:"DM Mono",monospace;font-size:9px;color:var(--g5);margin-bottom:2px;}
+.mw-venue{font-size:9px;font-weight:600;color:var(--g5);display:inline-block;background:var(--g1);border-radius:3px;padding:1px 4px;margin-bottom:3px;}
+.mw-age{font-size:11px;font-weight:500;color:var(--g9);line-height:1.3;display:flex;align-items:baseline;gap:4px;}
+.mw-coaches{margin-top:3px;display:flex;flex-wrap:wrap;gap:2px;}
+.mw-notes{font-size:9px;color:var(--g5);margin-top:3px;font-style:italic;}
+.mw-week-nav{display:flex;align-items:center;gap:8px;padding:10px 20px 4px;}
+.mw-week-label{font-family:"DM Mono",monospace;font-size:12px;font-weight:500;color:var(--g9);}
+.dim .mw-card{opacity:.14;}
+.dim .mw-card.hl-card{opacity:1;}
+@media(max-width:800px){.day-cols{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="club-badge">WHC</div>
+  <div class="hdr-text"><div class="hdr-title" id="hdrTitle">Sunday Pitch Planner</div><div class="hdr-sub">Wimbledon Hockey Club · Summer 2025</div></div>
+  <div class="week-nav">
+    <button class="wnav-btn" onclick="changeWeek(-1)">&#8249;</button>
+    <div class="week-label" id="weekLabel" onclick="openWeekPicker()">–</div>
+    <select class="week-select" id="weekSelect" onchange="selectWeekFromPicker()" onblur="closeWeekPicker()"></select>
+    <button class="wnav-btn" onclick="changeWeek(1)">&#8250;</button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="legend">
+    <div class="leg"><div class="lsw training"></div>Training</div>
+    <div class="leg"><div class="lsw fixture"></div>Fixture</div>
+    <div class="leg"><div class="lsw gk"></div>GK</div>
+    <div class="leg"><div class="lsw away-t"></div>Away</div>
+    <div class="leg"><div class="lsw indoor"></div>Indoor</div>
+  </div>
+  <div class="view-tabs"><button class="vtab active" id="tabSun" onclick="switchView('sunday')">Sunday matchday</button><button class="vtab" id="tabMid" onclick="switchView('midweek')">Midweek programme</button></div>
+  <button class="tbtn" id="editBtn" onclick="toggleEdit()" style="display:none;"><div class="tdot"></div>Edit off</button>
+  <button class="tbtn" id="exportBtn" onclick="exportFile()" style="display:none;margin-left:4px;" title="Save all changes as a new copy of this file">&#8595; Save file</button>
+  <button class="tbtn" id="adminBtn" onclick="promptAdmin()" title="Admin login" style="margin-left:auto;">&#9881; Admin</button>
+</div>
+
+<div class="page-heading" id="pageHeading"><h1>What's On This Week</h1><span class="week-tag" id="headingWeekTag"></span></div>
+<div class="page-body">
+  <div class="grid-wrap">
+    <div class="grid" id="mainGrid">
+      <div class="grid-head">
+        <div class="time-head"></div>
+        <div class="col-head col-whs"><div class="chl">WHS</div><div class="cha">Nursery Rd SW19</div></div>
+        <div class="col-head col-rphs"><div class="chl">RPHS</div><div class="cha">Bushey Rd SW20</div></div>
+        <div class="col-head col-kcspp"><div class="chl">KCS — PP</div><div class="cha">Kingsway KT3</div></div>
+        <div class="col-head col-kcstt"><div class="chl">KCS — TT</div><div class="cha">Kingsway KT3</div></div>
+        <div class="col-head col-away-hd"><div class="chl">Away fixtures</div><div class="cha">Opposition &amp; address</div></div>
+      </div>
+      <table class="pt" id="pitchTable">
+        <colgroup><col class="tc"><col><col><col><col><col class="ac"></colgroup>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="print-hint">Cmd+P / Ctrl+P to print or save as PDF</div>
+  </div>
+
+  <div class="side-panel">
+    <div class="panel-box">
+      <div class="panel-hdr"><div class="panel-hdr-title">Role key</div></div>
+      <div class="panel-body">
+        <div class="role-row"><div class="role-badge">L</div><div class="role-label">Lead coach</div></div>
+        <div class="role-row"><div class="role-badge">D</div><div class="role-label">Development</div></div>
+        <div class="role-row"><div class="role-badge">A</div><div class="role-label">Assistant coach</div></div>
+        <div class="role-row"><div class="role-badge">JAC</div><div class="role-label">Junior asst coach</div></div>
+        <div class="role-row"><div class="role-badge">JPC</div><div class="role-label">Junior playing coach</div></div>
+        <div class="role-row"><div class="role-badge">PA</div><div class="role-label">Parent assistant</div></div>
+        <div class="role-row"><div class="role-badge">U</div><div class="role-label">Umpire</div></div>
+      </div>
+    </div>
+    <div class="panel-box">
+      <div class="panel-hdr"><div class="panel-hdr-title">Coaches — tap to highlight</div></div>
+      <div class="panel-body key-list" id="keyList"></div>
+    </div>
+    <div class="panel-box">
+      <div class="panel-hdr"><div class="panel-hdr-title">All Sundays</div></div>
+      <div class="panel-body" id="weekListPanel" style="padding:4px 6px;max-height:200px;overflow-y:auto;"></div>
+      <div class="add-week-btn" onclick="openAddWeekModal()">+ Add Sunday</div>
+    </div>
+  </div>
+</div>
+
+<!-- Session modal -->
+<div class="overlay" id="sessModal">
+  <div class="modal">
+    <div class="mhdr">
+      <div><div class="mtitle" id="sessModalTitle">Add session</div><div class="mmeta" id="sessModalMeta"></div></div>
+      <button class="mclose" onclick="closeSessModal()">×</button>
+    </div>
+    <div class="mbody">
+      <div class="field-row">
+        <div class="field"><label>Age group / session name</label><input type="text" id="fAge" placeholder="e.g. GU13/14s Training" autocomplete="off"></div>
+        <div class="field"><label>Players on pitch</label><input type="number" id="fPlayers" placeholder="e.g. 48" min="0" max="999"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Duration</label>
+          <select id="fDur">
+            <option value="1">30 min</option>
+            <option value="1.5">45 min</option>
+            <option value="2">1 hour</option>
+            <option value="2.5">1 hr 15 min</option>
+            <option value="3" selected>1 hr 30 min</option>
+            <option value="4">2 hours</option>
+            <option value="5">2 hr 30 min</option>
+            <option value="6">3 hours</option>
+          </select>
+        </div>
+        <div class="field"><label>Session type</label>
+          <div class="type-grid" style="grid-template-columns:repeat(2,1fr);">
+            <div class="topt sel" data-t="training" onclick="selType('training')"><div class="dot"></div>Training</div>
+            <div class="topt" data-t="fixture" onclick="selType('fixture')"><div class="dot"></div>Fixture</div>
+            <div class="topt" data-t="gk" onclick="selType('gk')"><div class="dot"></div>GK</div>
+            <div class="topt" data-t="indoor" onclick="selType('indoor')"><div class="dot"></div>Indoor</div>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Coaches</label>
+        <div class="coaches-builder">
+          <div id="coachRows"></div>
+          <div class="cb-add">
+            <input type="text" id="newCoachName" placeholder="Coach name" list="coachSuggest" autocomplete="off">
+            <datalist id="coachSuggest"></datalist>
+            <select id="newCoachRole">
+              <option value="L">L — Lead</option>
+              <option value="D">D — Development</option>
+              <option value="A" selected>A — Assistant</option>
+              <option value="JAC">JAC</option>
+              <option value="JPC">JPC</option>
+              <option value="PA">PA</option>
+              <option value="U">U — Umpire</option>
+            </select>
+            <button class="cb-add-btn" onclick="addCoachRow()">Add</button>
+          </div>
+        </div>
+        <div class="fnote">Names must match the coach list exactly for colour coding</div>
+      </div>
+    </div>
+    <div class="mftr">
+      <button class="btn btn-ghost" onclick="closeSessModal()">Cancel</button>
+      <button class="btn btn-pri" onclick="saveSession()">Save session</button>
+    </div>
+  </div>
+</div>
+
+<!-- Away fixture modal -->
+<div class="overlay" id="awayModal">
+  <div class="modal">
+    <div class="mhdr">
+      <div><div class="mtitle" id="awayModalTitle">Add away fixture</div><div class="mmeta" id="awayModalMeta"></div></div>
+      <button class="mclose" onclick="closeAwayModal()">×</button>
+    </div>
+    <div class="mbody">
+      <div class="field-row">
+        <div class="field"><label>Age group / team</label><input type="text" id="aAge" placeholder="e.g. GU14s Stormers" autocomplete="off"></div>
+        <div class="field"><label>Players</label><input type="number" id="aPlayers" placeholder="e.g. 15" min="0"></div>
+      </div>
+      <div class="field"><label>Opposition name</label><input type="text" id="aOpp" placeholder="e.g. Surbiton HC" autocomplete="off"></div>
+      <div class="field"><label>Full address</label><textarea id="aAddr" placeholder="e.g. Sugden Lane, Thames Ditton, KT7 0AE"></textarea></div>
+      <div class="field"><label>Push-back time</label><input type="text" id="aPB" placeholder="e.g. 1:15pm" autocomplete="off"></div>
+      <div class="field">
+        <label>Coach / umpires</label>
+        <div class="coaches-builder">
+          <div id="awayCoachRows"></div>
+          <div class="cb-add">
+            <input type="text" id="awayCoachName" placeholder="Coach name" list="coachSuggest" autocomplete="off">
+            <select id="awayCoachRole">
+              <option value="L">L — Lead</option>
+              <option value="A" selected>A — Assistant</option>
+              <option value="U">U — Umpire</option>
+              <option value="PA">PA</option>
+            </select>
+            <button class="cb-add-btn" onclick="addAwayCoachRow()">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mftr">
+      <button class="btn btn-ghost" onclick="closeAwayModal()">Cancel</button>
+      <button class="btn btn-pri" onclick="saveAwayFixture()">Save fixture</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add week modal -->
+<div class="overlay" id="weekModal">
+  <div class="modal" style="max-width:320px;">
+    <div class="mhdr"><div class="mtitle">Add Sunday</div><button class="mclose" onclick="closeWeekModal()">×</button></div>
+    <div class="mbody">
+      <div class="field"><label>Date label</label><input type="text" id="newWeekDate" placeholder="Sunday DD Month YYYY" autocomplete="off"></div>
+    </div>
+    <div class="mftr">
+      <button class="btn btn-ghost" onclick="closeWeekModal()">Cancel</button>
+      <button class="btn btn-pri" onclick="confirmAddWeek()">Add</button>
+    </div>
+  </div>
+</div>
+
+
+</div><!-- end page-body -->
+
+<!-- ── MIDWEEK VIEW ──────────────────────────────────────── -->
+<div class="mw-wrap" id="mwWrap">
+  <div class="page-heading" style="padding:0 0 4px;"><h1>What's On This Week</h1></div>
+  <div class="mw-week-nav">
+    <button class="wnav-btn" onclick="changeMWWeek(-1)">&#8249;</button>
+    <div class="mw-week-label" id="mwWeekLabel">–</div>
+    <button class="wnav-btn" onclick="changeMWWeek(1)">&#8250;</button>
+  </div>
+  <div style="display:flex;gap:14px;align-items:flex-start;">
+    <div style="flex:1;overflow-x:auto;">
+      <div class="day-cols" id="dayGrid"></div>
+    </div>
+    <div class="side-panel" style="position:sticky;top:68px;">
+      <div class="panel-box">
+        <div class="panel-hdr"><div class="panel-hdr-title">Role key</div></div>
+        <div class="panel-body">
+          <div class="role-row"><div class="role-badge">L</div><div class="role-label">Lead coach</div></div>
+          <div class="role-row"><div class="role-badge">D</div><div class="role-label">Development</div></div>
+          <div class="role-row"><div class="role-badge">A</div><div class="role-label">Assistant coach</div></div>
+          <div class="role-row"><div class="role-badge">JAC</div><div class="role-label">Junior asst coach</div></div>
+          <div class="role-row"><div class="role-badge">JPC</div><div class="role-label">Junior playing coach</div></div>
+          <div class="role-row"><div class="role-badge">PA</div><div class="role-label">Parent assistant</div></div>
+          <div class="role-row"><div class="role-badge">U</div><div class="role-label">Umpire</div></div>
+        </div>
+      </div>
+      <div class="panel-box">
+        <div class="panel-hdr"><div class="panel-hdr-title">Coaches — tap to highlight</div></div>
+        <div class="panel-body key-list" id="mwKeyList"></div>
+      </div>
+      <div class="panel-box">
+        <div class="panel-hdr"><div class="panel-hdr-title">All weeks</div></div>
+        <div class="panel-body" id="mwWeekListPanel" style="padding:4px 6px;max-height:200px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="print-hint">Cmd+P / Ctrl+P to print</div>
+</div>
+
+<!-- ── MIDWEEK SESSION MODAL ──────────────────────────────────────── -->
+<div class="overlay" id="mwModal">
+  <div class="modal">
+    <div class="mhdr">
+      <div><div class="mtitle" id="mwModalTitle">Add midweek session</div><div class="mmeta" id="mwModalMeta"></div></div>
+      <button class="mclose" onclick="closeMWModal()">×</button>
+    </div>
+    <div class="mbody">
+      <div class="field-row">
+        <div class="field"><label>Session name / age group</label><input type="text" id="mwAge" placeholder="e.g. GU13/14 Training" autocomplete="off"></div>
+        <div class="field"><label>Players</label><input type="number" id="mwPlayers" placeholder="e.g. 29" min="0"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Start time</label><input type="text" id="mwStart" placeholder="e.g. 6:00pm" autocomplete="off"></div>
+        <div class="field"><label>End time</label><input type="text" id="mwEnd" placeholder="e.g. 7:15pm" autocomplete="off"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Venue</label><input type="text" id="mwVenue" placeholder="e.g. RPHS" autocomplete="off"></div>
+        <div class="field"><label>Session type</label>
+          <div class="type-grid" style="grid-template-columns:repeat(2,1fr);">
+            <div class="topt sel" data-t="training" onclick="selMWType('training')"><div class="dot"></div>Training</div>
+            <div class="topt" data-t="fixture" onclick="selMWType('fixture')"><div class="dot"></div>Fixture</div>
+            <div class="topt" data-t="gk" onclick="selMWType('gk')"><div class="dot"></div>GK</div>
+            <div class="topt" data-t="indoor" onclick="selMWType('indoor')"><div class="dot"></div>Indoor</div>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Coaches</label>
+        <div class="coaches-builder">
+          <div id="mwCoachRows"></div>
+          <div class="cb-add">
+            <input type="text" id="mwCoachName" placeholder="Coach name" list="coachSuggest" autocomplete="off">
+            <select id="mwCoachRole">
+              <option value="L">L — Lead</option>
+              <option value="D">D — Development</option>
+              <option value="A" selected>A — Assistant</option>
+              <option value="JAC">JAC</option>
+              <option value="JPC">JPC</option>
+              <option value="PA">PA</option>
+              <option value="U">U — Umpire</option>
+            </select>
+            <button class="cb-add-btn" onclick="addMWCoachRow()">Add</button>
+          </div>
+        </div>
+      </div>
+      <div class="field"><label>Notes</label><input type="text" id="mwNotes" placeholder="e.g. Ball/pitch tidy up: Joe Tait" autocomplete="off"></div>
+    </div>
+    <div class="mftr">
+      <button class="btn btn-ghost" onclick="closeMWModal()">Cancel</button>
+      <button class="btn btn-pri" onclick="saveMWSession()">Save session</button>
+    </div>
+  </div>
+</div>
+
+
+
+const TIMES=['8:30am','9:00am','9:30am','10:00am','10:30am','11:00am','11:30am',
+  '12:00pm','12:30pm','1:00pm','1:30pm','2:00pm','2:30pm','3:00pm','3:30pm','4:00pm','4:30pm'];
+const VENUES=['whs','rphs','kcs_pp','kcs_tt'];
+const VL={whs:'WHS',rphs:'RPHS',kcs_pp:'KCS PP',kcs_tt:'KCS TT'};
+
+const COACH_COLORS={
+  "Lucy Holder":"#c0392b","Euan Gilmour":"#2471a3","James Price":"#1e8449",
+  "James Vallely":"#7d3c98","Alex Wilson":"#d68910","Fin Hurst":"#117a65",
+  "Ben Fox":"#ba4a00","Keegan Bint":"#2e4057","Fred Newbold":"#b9770e",
+  "Becky Manton":"#0e9183","Nina Dickinson":"#e74c3c","Suzy Petty":"#2e86c1",
+  "Charlotte Lee":"#1d8348","Bronwyn Shields":"#6c3483","Jason Stiff":"#a04000",
+  "Ryan Lees":"#1a5276","Joe Tait":"#7d6608","Krish Gunatunga":"#0e6655",
+  "Jimmy Culnane":"#515a5a","Paige Gillott":"#d35400","Kev Johnson":"#922b21",
+  "Helen Jelley":"#4a235a","Karl Stagno":"#196f3d","Jonty Griffiths":"#784212",
+  "Scarlett Ames":"#c0392b","Amelie Rees":"#1a6b8a","Ritika Punukollu":"#7b2d8b",
+  "Antonia Ridley":"#b03a6b","Georgia Hodgson":"#2d7a2d","Annie Price":"#c47a00",
+  "Ismail SS":"#2e6da4","Alex Sheldon":"#8e3a1a","Jimmy Culnane":"#3a7a6b",
+  "Anna Toman":"#7a3a6b","Frankie Tarren":"#4a6a2a","Calum MacDonald":"#1a4a7a",
+  "Callum MacKenzie":"#5a3a8a","Roddy Cameron":"#7a4a1a","JJ Lankfer":"#3a6a4a",
+  "TA Girls Lead":"#888","TA Girls Assistant":"#aaa","TA Boys Lead":"#888",
+  "TA Boys Assistant":"#aaa","TA Lead":"#888","TA Assistant":"#aaa"
+};
+
+// Data: each week has slots (home/pitch sessions) and away (away fixtures per time)
+// slots: {time: {venue: [{type,age,players,coaches:[{name,role}],span}]}}
+// away:  {time: [{age,players,opp,addr,pb,coaches:[{name,role}]}]}
+
+const WEEKS=[
+  {
+    date:"Sunday 31 May 2025",
+    slots:{
+      '9:00am':{
+        rphs:[
+          {type:'fixture',age:'Mixed U7s/U8s Matchplay',players:11,coaches:[{name:'Joe Tait',role:'L'},{name:'Ritika Punukollu',role:'U'}],span:2},
+          {type:'fixture',age:'GU9/10s Matchplay',players:16,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Antonia Ridley',role:'U'}],span:2},
+          {type:'fixture',age:'BU9/10s Matchplay',players:11,coaches:[{name:'Krish Gunatunga',role:'L'}],span:2}
+        ]
+      },
+      '10:00am':{
+        rphs:[
+          {type:'fixture',age:'GU11/12s Matchplay',players:40,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Krish Gunatunga',role:'A'},{name:'Ritika Punukollu',role:'U'}],span:2},
+          {type:'fixture',age:'BU11/12s Matchplay',players:8,coaches:[{name:'Joe Tait',role:'L'},{name:'Antonia Ridley',role:'U'}],span:2},
+          {type:'fixture',age:'GU13/14s Matchplay',players:null,coaches:[],span:2},
+          {type:'fixture',age:'BU13/14s Matchplay',players:null,coaches:[],span:2}
+        ]
+      },
+      '11:00am':{
+        rphs:[
+          {type:'fixture',age:'GU13/14s Matchplay',players:21,coaches:[{name:'Krish Gunatunga',role:'L'},{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'BU13/14s Matchplay',players:14,coaches:[{name:'Joe Tait',role:'L'},{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'GU15/16s & GU17/18s Matchplay',players:15,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'BU15/16s & BU17/18s Matchplay',players:8,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Amelie Rees',role:'U'}],span:2}
+        ]
+      }
+    },
+    away:{'9:00am':[{age:'TA Conference — Lilleshall',players:null,opp:'Lilleshall (Day rate)',addr:'Lilleshall National Sports Centre, Newport, TF10 9AT',pb:'All day',coaches:[{name:'Scarlett Ames',role:'L'}]}]}
+  },
+  {
+    date:"Sunday 7 June 2025",
+    slots:{
+      '9:00am':{
+        rphs:[
+          {type:'fixture',age:'Mixed U7s/U8s Matchplay',players:11,coaches:[{name:'Joe Tait',role:'L'},{name:'Ritika Punukollu',role:'U'}],span:2},
+          {type:'fixture',age:'GU9/10s Matchplay',players:16,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Antonia Ridley',role:'U'}],span:2},
+          {type:'fixture',age:'BU9/10s Matchplay',players:11,coaches:[{name:'Krish Gunatunga',role:'L'}],span:2}
+        ]
+      },
+      '10:00am':{
+        rphs:[
+          {type:'fixture',age:'GU11/12s Matchplay',players:40,coaches:[{name:'Joe Tait',role:'L'},{name:'Krish Gunatunga',role:'L'},{name:'Antonia Ridley',role:'U'}],span:2},
+          {type:'fixture',age:'BU11/12s Matchplay',players:8,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Ritika Punukollu',role:'U'}],span:2},
+          {type:'fixture',age:'GU13/14s Matchplay',players:null,coaches:[],span:2},
+          {type:'fixture',age:'BU13/14s Matchplay',players:null,coaches:[],span:2}
+        ]
+      },
+      '11:00am':{
+        rphs:[
+          {type:'fixture',age:'GU13/14s Matchplay',players:21,coaches:[{name:'Krish Gunatunga',role:'L'},{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'BU13/14s Matchplay',players:14,coaches:[{name:'Joe Tait',role:'L'},{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'GU15/16s & GU17/18s Matchplay',players:15,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'BU15/16s & BU17/18s Matchplay',players:8,coaches:[],span:2}
+        ]
+      },
+      '12:00pm':{
+        rphs:[
+          {type:'training',age:'121 Coaching',players:null,coaches:[],span:6},
+          {type:'training',age:'Inject Hockey',players:3,coaches:[{name:'Alex Sheldon',role:'L'}],span:6}
+        ]
+      }
+    },
+    away:{}
+  },
+  {
+    date:"Sunday 14 June 2025",
+    slots:{
+      '9:00am':{
+        rphs:[
+          {type:'fixture',age:'Mixed U7s/U8s Matchplay',players:11,coaches:[{name:'Amelie Rees',role:'L'},{name:'Ritika Punukollu',role:'U'}],span:2},
+          {type:'fixture',age:'GU9/10s Matchplay',players:16,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Antonia Ridley',role:'U'}],span:2},
+          {type:'fixture',age:'BU9/10s Matchplay',players:11,coaches:[{name:'Krish Gunatunga',role:'L'}],span:2}
+        ]
+      },
+      '10:00am':{
+        rphs:[
+          {type:'fixture',age:'GU11/12s Matchplay',players:40,coaches:[{name:'Amelie Rees',role:'L'},{name:'Krish Gunatunga',role:'L'},{name:'Antonia Ridley',role:'U'}],span:2},
+          {type:'fixture',age:'BU11/12s Matchplay',players:8,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Ritika Punukollu',role:'U'}],span:2},
+          {type:'fixture',age:'GU13/14s Matchplay',players:null,coaches:[],span:2},
+          {type:'fixture',age:'BU13/14s Matchplay',players:null,coaches:[],span:2}
+        ]
+      },
+      '11:00am':{
+        rphs:[
+          {type:'fixture',age:'GU13/14s Matchplay',players:21,coaches:[{name:'Krish Gunatunga',role:'L'}],span:2},
+          {type:'fixture',age:'BU13/14s Matchplay',players:14,coaches:[{name:'Amelie Rees',role:'L'}],span:2},
+          {type:'fixture',age:'GU15/16s & GU17/18s Matchplay',players:15,coaches:[{name:'Scarlett Ames',role:'L'}],span:2},
+          {type:'fixture',age:'BU15/16s & BU17/18s Matchplay',players:8,coaches:[{name:'Scarlett Ames',role:'L'}],span:2}
+        ]
+      },
+      '12:00pm':{rphs:[{type:'training',age:'121 Coaching',players:null,coaches:[],span:6}]}
+    },
+    away:{}
+  },
+  {
+    date:"Sunday 21 June 2025",
+    slots:{
+      '9:00am':{
+        rphs:[
+          {type:'fixture',age:'Mixed U7s/U8s Matchplay',players:11,coaches:[{name:'Joe Tait',role:'L'},{name:'Ritika Punukollu',role:'U'}],span:2},
+          {type:'fixture',age:'GU9/10s Matchplay',players:16,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Joe Tait',role:'L'},{name:'Antonia Ridley',role:'U'}],span:2},
+          {type:'fixture',age:'BU9/10s Matchplay',players:11,coaches:[{name:'Krish Gunatunga',role:'L'},{name:'Scarlett Ames',role:'L'}],span:2}
+        ]
+      },
+      '10:00am':{
+        rphs:[
+          {type:'fixture',age:'GU11/12s Matchplay',players:40,coaches:[{name:'Joe Tait',role:'L'},{name:'Krish Gunatunga',role:'L'},{name:'Antonia Ridley',role:'U'}],span:2},
+          {type:'fixture',age:'BU11/12s Matchplay',players:8,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Ritika Punukollu',role:'U'}],span:2},
+          {type:'fixture',age:'GU13/14s Matchplay',players:null,coaches:[],span:2},
+          {type:'fixture',age:'BU13/14s Matchplay',players:null,coaches:[],span:2}
+        ]
+      },
+      '11:00am':{
+        rphs:[
+          {type:'fixture',age:'GU13/14s Matchplay',players:21,coaches:[{name:'Krish Gunatunga',role:'L'},{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'BU13/14s Matchplay',players:14,coaches:[{name:'Joe Tait',role:'L'},{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'GU15/16s & GU17/18s Matchplay',players:15,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'BU15/16s & BU17/18s Matchplay',players:8,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Amelie Rees',role:'U'}],span:2}
+        ]
+      },
+      '12:30pm':{rphs:[{type:'fixture',age:'TA Boys v Sevenoaks TA',players:null,coaches:[{name:'Krish Gunatunga',role:'U'}],span:5}]},
+      '3:00pm':{rphs:[{type:'fixture',age:'TA Girls v Sevenoaks TA',players:null,coaches:[{name:'Krish Gunatunga',role:'U'}],span:5}]}
+    },
+    away:{}
+  },
+  {
+    date:"Sunday 28 June 2025",
+    slots:{
+      '9:00am':{
+        rphs:[
+          {type:'fixture',age:'Mixed U7s/U8s Matchplay',players:11,coaches:[{name:'Joe Tait',role:'L'},{name:'Ritika Punukollu',role:'U'}],span:2},
+          {type:'fixture',age:'GU9/10s Matchplay',players:16,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Antonia Ridley',role:'U'}],span:2},
+          {type:'fixture',age:'BU9/10s Matchplay',players:11,coaches:[{name:'Krish Gunatunga',role:'L'}],span:2}
+        ]
+      },
+      '10:00am':{
+        rphs:[
+          {type:'fixture',age:'GU11/12s Matchplay',players:40,coaches:[{name:'Joe Tait',role:'L'},{name:'Krish Gunatunga',role:'L'},{name:'Antonia Ridley',role:'U'}],span:2},
+          {type:'fixture',age:'BU11/12s Matchplay',players:8,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Ritika Punukollu',role:'U'}],span:2},
+          {type:'fixture',age:'GU13/14s Matchplay',players:null,coaches:[],span:2},
+          {type:'fixture',age:'BU13/14s Matchplay',players:null,coaches:[],span:2}
+        ]
+      },
+      '11:00am':{
+        rphs:[
+          {type:'fixture',age:'GU13/14s Matchplay',players:21,coaches:[{name:'Krish Gunatunga',role:'L'},{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'BU13/14s Matchplay',players:14,coaches:[{name:'Joe Tait',role:'L'},{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'GU15/16s & GU17/18s Matchplay',players:15,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'BU15/16s & BU17/18s Matchplay',players:8,coaches:[{name:'Scarlett Ames',role:'L'},{name:'Amelie Rees',role:'U'}],span:2}
+        ]
+      },
+      '12:30pm':{rphs:[{type:'fixture',age:'TA Girls v Surbiton TA',players:null,coaches:[{name:'Krish Gunatunga',role:'U'}],span:5}]},
+      '3:00pm':{rphs:[{type:'fixture',age:'TA Boys v Surbiton TA',players:null,coaches:[{name:'Roddy Cameron',role:'U'},{name:'Krish Gunatunga',role:'U'}],span:5}]}
+    },
+    away:{}
+  },
+  {
+    date:"Sunday 5 July 2025",
+    slots:{
+      '9:00am':{
+        rphs:[
+          {type:'fixture',age:'Mixed U7s/U8s Matchplay',players:11,coaches:[{name:'Joe Tait',role:'L'},{name:'Ritika Punukollu',role:'U'}],span:2},
+          {type:'fixture',age:'GU9/10s Matchplay — SCARLETT AWAY',players:16,coaches:[{name:'Antonia Ridley',role:'U'}],span:2},
+          {type:'fixture',age:'BU9/10s Matchplay',players:11,coaches:[{name:'Krish Gunatunga',role:'L'}],span:2}
+        ]
+      },
+      '10:00am':{
+        rphs:[
+          {type:'fixture',age:'GU11/12s Matchplay',players:40,coaches:[{name:'Joe Tait',role:'L'},{name:'Krish Gunatunga',role:'L'},{name:'Antonia Ridley',role:'U'}],span:2},
+          {type:'fixture',age:'BU11/12s Matchplay — SCARLETT AWAY',players:8,coaches:[{name:'Ritika Punukollu',role:'U'}],span:2},
+          {type:'fixture',age:'GU13/14s Matchplay',players:null,coaches:[],span:2},
+          {type:'fixture',age:'BU13/14s Matchplay',players:null,coaches:[],span:2}
+        ]
+      },
+      '11:00am':{
+        rphs:[
+          {type:'fixture',age:'GU13/14s Matchplay',players:21,coaches:[{name:'Krish Gunatunga',role:'L'},{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'BU13/14s Matchplay',players:14,coaches:[{name:'Joe Tait',role:'L'},{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'GU15/16s & GU17/18s — SCARLETT AWAY',players:15,coaches:[{name:'Amelie Rees',role:'U'}],span:2},
+          {type:'fixture',age:'BU15/16s & BU17/18s — SCARLETT AWAY',players:8,coaches:[{name:'Amelie Rees',role:'U'}],span:2}
+        ]
+      },
+      '12:30pm':{rphs:[{type:'fixture',age:'TA Girls v Holcombe TA',players:null,coaches:[],span:5}]},
+      '3:00pm':{rphs:[{type:'fixture',age:'TA Boys v Holcombe TA',players:null,coaches:[],span:5}]}
+    },
+    away:{
+      '9:00am':[
+        {age:'Girls Youth Games (Sunday 5 July)',players:null,opp:'Lee Valley HC',addr:'Lee Valley Hockey & Tennis Centre, Wick Lane, London, E20 3EL',pb:'TBC',coaches:[{name:'Amelie Rees',role:'L'}]},
+        {age:'Boys Youth Games (Saturday 4 July)',players:null,opp:'Lee Valley HC',addr:'Lee Valley Hockey & Tennis Centre, Wick Lane, London, E20 3EL',pb:'TBC',coaches:[{name:'Joe Tait',role:'L'},{name:'Amelie Rees',role:'A'}]}
+      ]
+    }
+  }
+];
+
+const MIDWEEKS=[
+  {
+    week:"Week of 2 June 2025",
+    days:{
+      monday:{date:"Monday 2 June 2025",sessions:[
+        {time:'5:00pm',end:'6:00pm',venue:'RPHS',age:'London Youth Games Trials',players:32,type:'training',coaches:[{name:'Joe Tait',role:'L'},{name:'Amelie Rees',role:'A'}],notes:''},
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'GU13/14 + GU15/16',players:41,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Joe Tait',role:'A'}],notes:'31+10'},
+        {time:'7:15pm',end:'8:30pm',venue:'RPHS',age:'BU13/14s + BU15/16s',players:14,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Joe Tait',role:'A'}],notes:'10+4'}
+      ]},
+      tuesday:{date:"Tuesday 3 June 2025",sessions:[
+        {time:'5:15pm',end:'6:30pm',venue:'RPHS',age:'GU9/10 + BU9/10',players:16,type:'training',coaches:[{name:'Scarlett Ames',role:'L'},{name:'Joe Tait',role:'L'},{name:'Ismail SS',role:'JPC'}],notes:'10+6'},
+        {time:'6:30pm',end:'7:30pm',venue:'RPHS',age:'GK Training U9–U18',players:6,type:'gk',coaches:[{name:'Joe Tait',role:'L'},{name:'Scarlett Ames',role:'A'}],notes:''},
+        {time:'6:30pm',end:'7:30pm',venue:'RPHS',age:'London Country Trial — extra training',players:7,type:'training',coaches:[{name:'Joe Tait',role:'L'},{name:'Scarlett Ames',role:'A'}],notes:''},
+        {time:'7:30pm',end:'9:30pm',venue:'RPHS',age:'TA Girls',players:null,type:'indoor',coaches:[{name:'TA Girls Lead',role:'L'},{name:'TA Girls Assistant',role:'A'}],notes:''}
+      ]},
+      wednesday:{date:"Wednesday 4 June 2025",sessions:[
+        {time:'5:15pm',end:'6:15pm',venue:'RPHS',age:'Quick Sticks U5/U6 + Mixed U7/U8',players:12,type:'training',coaches:[{name:'Joe Tait',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Georgia Hodgson',role:'JAC'},{name:'Annie Price',role:'JAC'}],notes:'Ball/pitch tidy up: Joe Tait · 3+9'},
+        {time:'6:15pm',end:'7:30pm',venue:'RPHS',age:'U11/12s High Potential — Girls',players:18,type:'training',coaches:[{name:'Becky Manton',role:'L'},{name:'Joe Tait',role:'A'}],notes:''},
+        {time:'6:15pm',end:'7:30pm',venue:'RPHS',age:'U11/12s High Potential — Boys',players:17,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'}],notes:''},
+        {time:'7:30pm',end:'9:30pm',venue:'RPHS',age:'TA Boys',players:null,type:'indoor',coaches:[{name:'TA Boys Lead',role:'L'},{name:'TA Boys Assistant',role:'A'},{name:'Joe Tait',role:'A'}],notes:''}
+      ]},
+      thursday:{date:"Thursday 5 June 2025",sessions:[
+        {time:'5:00pm',end:'6:00pm',venue:'RPHS',age:'121 Coaching',players:null,type:'training',coaches:[{name:'Jimmy Culnane',role:'L'}],notes:'TBC'},
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'GU11/12 Training',players:29,type:'training',coaches:[{name:'Scarlett Ames',role:'A'},{name:'Frankie Tarren',role:'A'}],notes:''},
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'BU11/12 Training',players:3,type:'training',coaches:[{name:'Joe Tait',role:'L'}],notes:''},
+        {time:'6:00pm',end:'7:30pm',venue:'RPSG',age:'S&C Block',players:null,type:'training',coaches:[{name:'Jimmy Culnane',role:'L'}],notes:''},
+        {time:'7:15pm',end:'9:00pm',venue:'RPHS',age:'Talent Futures',players:47,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Joe Tait',role:'A'},{name:'Calum MacDonald',role:'L'},{name:'Callum MacKenzie',role:'A'},{name:'Krish Gunatunga',role:'A'}],notes:'Lock up + ball/pitch tidy: Ryan Lees · GK: Krish Gunatunga'},
+        {time:'7:30pm',end:'9:00pm',venue:'RPSG',age:'S&C Block',players:null,type:'training',coaches:[{name:'Jimmy Culnane',role:'L'}],notes:''}
+      ]},
+      friday:{date:"Friday 6 June 2025",sessions:[
+        {time:'7:00pm',end:'9:00pm',venue:'RPHS',age:'Senior social slot',players:null,type:'training',coaches:[{name:'Frankie Tarren',role:'L'}],notes:'TBC — please confirm'}
+      ]}
+    }
+  },
+  {
+    week:"Week of 9 June 2025",
+    days:{
+      monday:{date:"Monday 9 June 2025",sessions:[
+        {time:'5:00pm',end:'6:00pm',venue:'TBC',age:'London Youth Games Trials',players:null,type:'training',coaches:[{name:'Joe Tait',role:'L'},{name:'Amelie Rees',role:'A'}],notes:''},
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'GU13/14 + GU15/16',players:41,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Joe Tait',role:'A'}],notes:'31+10'},
+        {time:'7:15pm',end:'8:30pm',venue:'RPHS',age:'BU13/14s + BU15/16s',players:14,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Joe Tait',role:'A'}],notes:'10+4'}
+      ]},
+      tuesday:{date:"Tuesday 10 June 2025",sessions:[
+        {time:'5:15pm',end:'6:30pm',venue:'RPHS',age:'GU9/10 + BU9/10',players:16,type:'training',coaches:[{name:'Scarlett Ames',role:'L'},{name:'Joe Tait',role:'L'},{name:'Ismail SS',role:'JPC'}],notes:'10+6'},
+        {time:'6:30pm',end:'7:30pm',venue:'RPHS',age:'GK Training U9–U18',players:6,type:'gk',coaches:[{name:'Joe Tait',role:'L'},{name:'Scarlett Ames',role:'A'}],notes:''},
+        {time:'6:30pm',end:'7:30pm',venue:'RPHS',age:'121 Coaching',players:null,type:'training',coaches:[],notes:''},
+        {time:'7:30pm',end:'9:30pm',venue:'RPHS',age:'TA Girls',players:null,type:'indoor',coaches:[{name:'TA Girls Lead',role:'L'},{name:'TA Girls Assistant',role:'A'}],notes:'No Callum'}
+      ]},
+      wednesday:{date:"Wednesday 11 June 2025",sessions:[
+        {time:'5:15pm',end:'6:15pm',venue:'RPHS',age:'Quick Sticks U5/U6 + Mixed U7/U8',players:12,type:'training',coaches:[{name:'Joe Tait',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Georgia Hodgson',role:'JAC'},{name:'Annie Price',role:'JAC'}],notes:'Ball/pitch tidy up: Joe Tait · 3+9'},
+        {time:'6:15pm',end:'7:30pm',venue:'RPHS',age:'U11/12s High Potential — Girls',players:18,type:'training',coaches:[{name:'Becky Manton',role:'L'},{name:'Joe Tait',role:'A'}],notes:''},
+        {time:'6:15pm',end:'7:30pm',venue:'RPHS',age:'U11/12s High Potential — Boys',players:17,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'}],notes:''},
+        {time:'7:30pm',end:'9:30pm',venue:'RPHS',age:'TA Boys',players:null,type:'indoor',coaches:[{name:'TA Boys Lead',role:'L'},{name:'TA Boys Assistant',role:'A'},{name:'Joe Tait',role:'A'}],notes:''}
+      ]},
+      thursday:{date:"Thursday 12 June 2025",sessions:[
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'GU11/12 Training',players:29,type:'training',coaches:[{name:'Scarlett Ames',role:'A'},{name:'Frankie Tarren',role:'A'}],notes:''},
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'BU11/12 Training',players:3,type:'training',coaches:[{name:'Joe Tait',role:'L'}],notes:''},
+        {time:'6:00pm',end:'7:30pm',venue:'RPSG',age:'S&C Block',players:null,type:'training',coaches:[{name:'Jimmy Culnane',role:'L'}],notes:''},
+        {time:'7:15pm',end:'9:00pm',venue:'RPHS',age:'Talent Futures',players:47,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Joe Tait',role:'A'},{name:'Calum MacDonald',role:'L'},{name:'Callum MacKenzie',role:'A'},{name:'Krish Gunatunga',role:'A'},{name:'JJ Lankfer',role:'A'}],notes:'Lock up + ball/pitch tidy: Ryan Lees'},
+        {time:'7:30pm',end:'9:00pm',venue:'RPSG',age:'S&C Block',players:null,type:'training',coaches:[{name:'Jimmy Culnane',role:'L'}],notes:''}
+      ]},
+      friday:{date:"Friday 13 June 2025",sessions:[
+        {time:'7:00pm',end:'9:00pm',venue:'RPHS',age:'Senior social slot',players:null,type:'training',coaches:[{name:'Frankie Tarren',role:'L'}],notes:'TBC'}
+      ]}
+    }
+  },
+  {
+    week:"Week of 16 June 2025",
+    days:{
+      monday:{date:"Monday 16 June 2025",sessions:[
+        {time:'5:00pm',end:'6:00pm',venue:'TBC',age:'London Youth Games',players:null,type:'training',coaches:[{name:'Joe Tait',role:'L'},{name:'Amelie Rees',role:'A'}],notes:''},
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'GU13/14 + GU15/16',players:41,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Joe Tait',role:'A'}],notes:'31+10'},
+        {time:'7:15pm',end:'8:30pm',venue:'RPHS',age:'BU13/14s + BU15/16s',players:14,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Joe Tait',role:'A'}],notes:'10+4'}
+      ]},
+      tuesday:{date:"Tuesday 17 June 2025",sessions:[
+        {time:'5:15pm',end:'6:30pm',venue:'RPHS',age:'GU9/10 + BU9/10',players:16,type:'training',coaches:[{name:'Scarlett Ames',role:'L'},{name:'Joe Tait',role:'L'},{name:'Ismail SS',role:'JPC'}],notes:'10+6'},
+        {time:'6:30pm',end:'7:30pm',venue:'RPHS',age:'GK Training U9–U18',players:6,type:'gk',coaches:[{name:'Joe Tait',role:'L'},{name:'Scarlett Ames',role:'A'}],notes:''},
+        {time:'6:30pm',end:'7:30pm',venue:'RPHS',age:'121 Coaching',players:null,type:'training',coaches:[],notes:''},
+        {time:'7:30pm',end:'9:30pm',venue:'RPHS',age:'TA Girls',players:null,type:'indoor',coaches:[{name:'Jimmy Culnane',role:'L'},{name:'Anna Toman',role:'A'},{name:'Scarlett Ames',role:'A'}],notes:'No Callum or Calum'}
+      ]},
+      wednesday:{date:"Wednesday 18 June 2025",sessions:[
+        {time:'5:15pm',end:'6:15pm',venue:'RPHS',age:'Quick Sticks U5/U6 + Mixed U7/U8',players:12,type:'training',coaches:[{name:'Joe Tait',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Georgia Hodgson',role:'JAC'},{name:'Annie Price',role:'JAC'}],notes:'Ball/pitch tidy up: Joe Tait · 3+9'},
+        {time:'6:15pm',end:'7:30pm',venue:'RPHS',age:'U11/12s High Potential — Girls',players:18,type:'training',coaches:[{name:'Becky Manton',role:'L'},{name:'Joe Tait',role:'A'}],notes:''},
+        {time:'6:15pm',end:'7:30pm',venue:'RPHS',age:'U11/12s High Potential — Boys',players:17,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'}],notes:''},
+        {time:'7:30pm',end:'9:30pm',venue:'RPHS',age:'TA Boys',players:null,type:'indoor',coaches:[{name:'TA Boys Lead',role:'L'},{name:'TA Boys Assistant',role:'A'},{name:'Joe Tait',role:'A'}],notes:''}
+      ]},
+      thursday:{date:"Thursday 19 June 2025",sessions:[
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'GU11/12 Training',players:29,type:'training',coaches:[{name:'Scarlett Ames',role:'A'},{name:'Frankie Tarren',role:'A'}],notes:''},
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'BU11/12 Training',players:3,type:'training',coaches:[{name:'Joe Tait',role:'L'}],notes:''},
+        {time:'6:00pm',end:'7:30pm',venue:'RPSG',age:'S&C Block',players:null,type:'training',coaches:[{name:'Jimmy Culnane',role:'L'}],notes:''},
+        {time:'7:15pm',end:'9:00pm',venue:'RPHS',age:'Talent Futures',players:47,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Joe Tait',role:'A'},{name:'Calum MacDonald',role:'L'},{name:'Callum MacKenzie',role:'A'},{name:'Krish Gunatunga',role:'A'}],notes:'Lock up + ball/pitch tidy: Ryan Lees'},
+        {time:'7:30pm',end:'9:00pm',venue:'RPSG',age:'S&C Block',players:null,type:'training',coaches:[{name:'Jimmy Culnane',role:'L'}],notes:''}
+      ]},
+      friday:{date:"Friday 20 June 2025",sessions:[
+        {time:'7:00pm',end:'9:00pm',venue:'RPHS',age:'Senior social slot',players:null,type:'training',coaches:[{name:'Frankie Tarren',role:'L'}],notes:'TBC'}
+      ]}
+    }
+  },
+  {
+    week:"Week of 23 June 2025",
+    days:{
+      monday:{date:"Monday 23 June 2025",sessions:[
+        {time:'12:15pm',end:'2:45pm',venue:'RPHS',age:'TA Girls v Surbiton TA',players:null,type:'fixture',coaches:[{name:'TA Lead',role:'L'},{name:'TA Assistant',role:'A'}],notes:''},
+        {time:'5:00pm',end:'6:00pm',venue:'TBC',age:'London Youth Games',players:null,type:'training',coaches:[{name:'Joe Tait',role:'L'},{name:'Amelie Rees',role:'A'}],notes:''},
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'GU13/14 + GU15/16',players:41,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Joe Tait',role:'A'}],notes:'31+10'},
+        {time:'7:15pm',end:'8:30pm',venue:'RPHS',age:'BU13/14s + BU15/16s',players:14,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Joe Tait',role:'A'}],notes:'10+4'}
+      ]},
+      tuesday:{date:"Tuesday 24 June 2025",sessions:[
+        {time:'5:15pm',end:'6:30pm',venue:'RPHS',age:'GU9/10 + BU9/10',players:16,type:'training',coaches:[{name:'Scarlett Ames',role:'L'},{name:'Joe Tait',role:'L'},{name:'Ismail SS',role:'JPC'}],notes:'10+6'},
+        {time:'6:30pm',end:'7:30pm',venue:'RPHS',age:'GK Training U9–U18',players:6,type:'gk',coaches:[{name:'Joe Tait',role:'L'},{name:'Scarlett Ames',role:'A'}],notes:''},
+        {time:'6:30pm',end:'7:30pm',venue:'RPHS',age:'121 Coaching',players:null,type:'training',coaches:[],notes:''},
+        {time:'7:30pm',end:'9:30pm',venue:'RPHS',age:'TA Girls',players:null,type:'indoor',coaches:[{name:'TA Girls Lead',role:'L'},{name:'TA Girls Assistant',role:'A'}],notes:''}
+      ]},
+      wednesday:{date:"Wednesday 25 June 2025",sessions:[
+        {time:'5:15pm',end:'6:15pm',venue:'RPHS',age:'Quick Sticks U5/U6 + Mixed U7/U8',players:12,type:'training',coaches:[{name:'Joe Tait',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Georgia Hodgson',role:'JAC'},{name:'Annie Price',role:'JAC'}],notes:'Ball/pitch tidy up: Joe Tait · 3+9'},
+        {time:'6:15pm',end:'7:30pm',venue:'RPHS',age:'U11/12s High Potential — Girls',players:18,type:'training',coaches:[{name:'Becky Manton',role:'L'},{name:'Joe Tait',role:'A'}],notes:''},
+        {time:'6:15pm',end:'7:30pm',venue:'RPHS',age:'U11/12s High Potential — Boys',players:17,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'}],notes:''},
+        {time:'7:30pm',end:'9:30pm',venue:'RPHS',age:'TA Boys',players:null,type:'indoor',coaches:[{name:'TA Boys Lead',role:'L'},{name:'TA Boys Assistant',role:'A'},{name:'Joe Tait',role:'A'}],notes:''}
+      ]},
+      thursday:{date:"Thursday 26 June 2025",sessions:[
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'GU11/12 Training',players:29,type:'training',coaches:[{name:'Frankie Tarren',role:'A'}],notes:'⚠ SCARLETT AWAY — Lead coach TBC'},
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'BU11/12 Training',players:3,type:'training',coaches:[{name:'Joe Tait',role:'L'}],notes:''},
+        {time:'6:00pm',end:'7:30pm',venue:'RPSG',age:'S&C Block',players:null,type:'training',coaches:[{name:'Jimmy Culnane',role:'L'}],notes:''},
+        {time:'7:15pm',end:'9:00pm',venue:'RPHS',age:'Talent Futures',players:47,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Joe Tait',role:'A'},{name:'Calum MacDonald',role:'L'},{name:'Callum MacKenzie',role:'A'},{name:'Krish Gunatunga',role:'A'}],notes:'Lock up + ball/pitch tidy: Ryan Lees'},
+        {time:'7:30pm',end:'9:00pm',venue:'RPSG',age:'S&C Block',players:null,type:'training',coaches:[{name:'Jimmy Culnane',role:'L'}],notes:''}
+      ]},
+      friday:{date:"Friday 27 June 2025",sessions:[
+        {time:'7:00pm',end:'9:00pm',venue:'RPHS',age:'Senior social slot',players:null,type:'training',coaches:[{name:'Frankie Tarren',role:'L'}],notes:'TBC'}
+      ]}
+    }
+  },
+  {
+    week:"Week of 30 June 2025",
+    days:{
+      monday:{date:"Monday 30 June 2025",sessions:[
+        {time:'5:00pm',end:'6:00pm',venue:'TBC',age:'London Youth Games',players:null,type:'training',coaches:[{name:'Joe Tait',role:'L'},{name:'Amelie Rees',role:'A'}],notes:''},
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'GU13/14 + GU15/16',players:41,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Joe Tait',role:'A'}],notes:'31+10'},
+        {time:'7:15pm',end:'8:30pm',venue:'RPHS',age:'BU13/14s + BU15/16s',players:14,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Joe Tait',role:'A'}],notes:'10+4'}
+      ]},
+      tuesday:{date:"Tuesday 1 July 2025",sessions:[
+        {time:'5:15pm',end:'6:30pm',venue:'RPHS',age:'GU9/10 + BU9/10',players:16,type:'training',coaches:[{name:'Scarlett Ames',role:'L'},{name:'Joe Tait',role:'L'},{name:'Ismail SS',role:'JPC'}],notes:'10+6'},
+        {time:'6:30pm',end:'7:30pm',venue:'RPHS',age:'GK Training U9–U18',players:6,type:'gk',coaches:[{name:'Joe Tait',role:'L'},{name:'Scarlett Ames',role:'A'}],notes:''},
+        {time:'6:30pm',end:'7:30pm',venue:'RPHS',age:'121 Coaching',players:null,type:'training',coaches:[],notes:''},
+        {time:'7:30pm',end:'9:30pm',venue:'RPHS',age:'TA Girls',players:null,type:'indoor',coaches:[{name:'TA Girls Lead',role:'L'},{name:'TA Girls Assistant',role:'A'}],notes:''}
+      ]},
+      wednesday:{date:"Wednesday 2 July 2025",sessions:[
+        {time:'5:15pm',end:'6:15pm',venue:'RPHS',age:'Quick Sticks U5/U6 + Mixed U7/U8',players:12,type:'training',coaches:[{name:'Joe Tait',role:'L'},{name:'Scarlett Ames',role:'A'},{name:'Georgia Hodgson',role:'JAC'},{name:'Annie Price',role:'JAC'}],notes:'Ball/pitch tidy up: Joe Tait · 3+9'},
+        {time:'6:15pm',end:'7:30pm',venue:'RPHS',age:'U11/12s High Potential — Girls',players:18,type:'training',coaches:[{name:'Becky Manton',role:'L'},{name:'Joe Tait',role:'A'}],notes:''},
+        {time:'6:15pm',end:'7:30pm',venue:'RPHS',age:'U11/12s High Potential — Boys',players:17,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Scarlett Ames',role:'A'}],notes:''},
+        {time:'7:30pm',end:'9:30pm',venue:'RPHS',age:'TA Boys',players:null,type:'indoor',coaches:[{name:'TA Boys Lead',role:'L'},{name:'TA Boys Assistant',role:'A'},{name:'Joe Tait',role:'A'}],notes:''}
+      ]},
+      thursday:{date:"Thursday 3 July 2025",sessions:[
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'GU11/12 Training',players:29,type:'training',coaches:[{name:'Scarlett Ames',role:'A'},{name:'Frankie Tarren',role:'A'}],notes:''},
+        {time:'6:00pm',end:'7:15pm',venue:'RPHS',age:'BU11/12 Training',players:3,type:'training',coaches:[{name:'Joe Tait',role:'L'}],notes:''},
+        {time:'6:00pm',end:'7:30pm',venue:'RPSG',age:'S&C Block',players:null,type:'training',coaches:[{name:'Jimmy Culnane',role:'L'}],notes:''},
+        {time:'7:15pm',end:'9:00pm',venue:'RPHS',age:'Talent Futures — Final Session',players:47,type:'training',coaches:[{name:'Ryan Lees',role:'L'},{name:'Joe Tait',role:'A'},{name:'Calum MacDonald',role:'L'},{name:'Callum MacKenzie',role:'A'},{name:'Krish Gunatunga',role:'A'}],notes:'Lock up + ball/pitch tidy: Ryan Lees'},
+        {time:'7:30pm',end:'9:00pm',venue:'RPSG',age:'S&C Block',players:null,type:'training',coaches:[{name:'Jimmy Culnane',role:'L'}],notes:''}
+      ]},
+      friday:{date:"Friday 4 July 2025",sessions:[
+        {time:'7:00pm',end:'9:00pm',venue:'RPHS',age:'Senior social slot',players:null,type:'training',coaches:[{name:'Frankie Tarren',role:'L'}],notes:'TBC'}
+      ]}
+    }
+  }
+];
+let currentWeek=0,editMode=false,hlCoach=null;
+let pendingSess=null,pendingAway=null;
+let selType_='training',pendingCoaches=[],pendingAwayCoaches=[];
+
+// ── Render ────────────────────────────────────────────────────────────────
+function render(){
+  const week=WEEKS[currentWeek];
+  document.getElementById('weekLabel').textContent=week.date;
+  const tbody=document.getElementById('tbody');
+  tbody.innerHTML='';
+  const occ={};VENUES.forEach(v=>{occ[v]={};});
+
+  TIMES.forEach((time,ti)=>{
+    const tr=document.createElement('tr');
+    // time cell
+    const tc=document.createElement('td');tc.className='time-cell';tc.textContent=time;tr.appendChild(tc);
+    // venue slots
+    VENUES.forEach(venue=>{
+      if(occ[venue][ti])return;
+      const sessions=(week.slots[time]&&week.slots[time][venue])||[];
+      const td=document.createElement('td');td.className='slot';
+      let span=1;
+      if(sessions.length){span=Math.max(...sessions.map(s=>s.span||1));span=Math.min(span,TIMES.length-ti);}
+      if(span>1){td.rowSpan=span;for(let s=1;s<span;s++)occ[venue][ti+s]=true;}
+      sessions.forEach((sess,si)=>{
+        const card=buildSessCard(sess,si,time,venue);
+        td.appendChild(card);
+      });
+      const ab=document.createElement('div');ab.className='add-card';ab.textContent='+';ab.onclick=()=>openSessModal(time,venue);td.appendChild(ab);
+      tr.appendChild(td);
+    });
+    // away column
+    const awtd=document.createElement('td');awtd.className='away-slot';
+    const awayFixtures=(week.away&&week.away[time])||[];
+    awayFixtures.forEach((af,ai)=>{
+      awtd.appendChild(buildAwayCard(af,ai,time));
+    });
+    const aab=document.createElement('div');aab.className='add-away-card';aab.textContent='+';aab.onclick=()=>openAwayModal(time);awtd.appendChild(aab);
+    tr.appendChild(awtd);
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('mainGrid').classList.toggle('dim',!!hlCoach);
+  document.getElementById('mainGrid').classList.toggle('edit-mode',editMode);
+  renderCoachKey();renderWeekList();populateDatalist();
+}
+
+function buildSessCard(sess,si,time,venue){
+  const card=document.createElement('div');
+  card.className='scard '+sess.type;
+  const hasHl=hlCoach&&sess.coaches&&sess.coaches.some(c=>c.name===hlCoach);
+  if(hasHl)card.classList.add('hl-card');
+  // age + player count
+  const ageRow=document.createElement('div');ageRow.className='sage';
+  const ageTxt=document.createElement('span');ageTxt.className='sage-txt';ageTxt.textContent=sess.age;
+  ageRow.appendChild(ageTxt);
+  if(sess.players){
+    const pc=document.createElement('span');pc.className='player-count';pc.textContent=sess.players;
+    ageRow.appendChild(pc);
+  }
+  card.appendChild(ageRow);
+  // coach tags
+  if(sess.coaches&&sess.coaches.length){
+    const tags=document.createElement('div');tags.className='stags';
+    sess.coaches.forEach(c=>{
+      const tag=document.createElement('span');tag.className='ctag';
+      tag.style.background=COACH_COLORS[c.name]||'#888';
+      if(hlCoach===c.name){tag.style.outline='2px solid white';tag.style.outlineOffset='1px';}
+      const rs=document.createElement('span');rs.className='ctag-role';rs.textContent=c.role;
+      tag.appendChild(rs);tag.appendChild(document.createTextNode(c.name));
+      tags.appendChild(tag);
+    });
+    card.appendChild(tags);
+  }
+  const edit=document.createElement('button');edit.className='sedit';edit.title='Edit';edit.innerHTML='&#9998;';
+  edit.onclick=e=>{e.stopPropagation();openSessModal(time,venue,si,sess);};
+  card.appendChild(edit);
+  const del=document.createElement('button');del.className='sdel';del.textContent='×';
+  del.onclick=e=>{e.stopPropagation();delSession(time,venue,si);};
+  card.appendChild(del);
+  return card;
+}
+
+function buildAwayCard(af,ai,time){
+  const card=document.createElement('div');card.className='away-card';
+  const hasHl=hlCoach&&af.coaches&&af.coaches.some(c=>c.name===hlCoach);
+  if(hasHl)card.classList.add('hl-card');
+  // age + players
+  const ar=document.createElement('div');ar.className='away-age';
+  const at=document.createElement('span');at.className='away-opp';at.textContent=af.age;ar.appendChild(at);
+  if(af.players){const pc=document.createElement('span');pc.className='player-count';pc.textContent=af.players;ar.appendChild(pc);}
+  card.appendChild(ar);
+  // opposition
+  const opp=document.createElement('div');opp.className='away-opp';opp.style.cssText='font-size:10px;font-weight:600;color:#3d3d3d;margin-top:2px;';opp.textContent='vs '+af.opp;card.appendChild(opp);
+  // PB time
+  if(af.pb){const pb=document.createElement('div');pb.style.cssText='font-size:9px;color:var(--g5);margin-top:1px;';pb.textContent='PB: '+af.pb;card.appendChild(pb);}
+  // address + map link
+  if(af.addr){
+    const addr=document.createElement('div');addr.className='away-addr';addr.textContent=af.addr;card.appendChild(addr);
+    const ml=document.createElement('a');ml.className='away-map-link';
+    ml.href='https://www.google.com/maps/search/'+encodeURIComponent(af.addr);
+    ml.target='_blank';ml.rel='noopener';ml.textContent='Open in maps ↗';
+    card.appendChild(ml);
+  }
+  // coaches
+  if(af.coaches&&af.coaches.length){
+    const tags=document.createElement('div');tags.className='away-coach-tags';
+    af.coaches.forEach(c=>{
+      const tag=document.createElement('span');tag.className='ctag';
+      tag.style.background=COACH_COLORS[c.name]||'#888';
+      const rs=document.createElement('span');rs.className='ctag-role';rs.textContent=c.role;
+      tag.appendChild(rs);tag.appendChild(document.createTextNode(c.name));
+      tags.appendChild(tag);
+    });
+    card.appendChild(tags);
+  }
+  const awEdit=document.createElement('button');awEdit.className='away-edit';awEdit.title='Edit';awEdit.innerHTML='&#9998;';
+  awEdit.onclick=e=>{e.stopPropagation();openAwayModal(time,ai,af);};
+  card.appendChild(awEdit);
+  const del=document.createElement('button');del.className='away-del';del.textContent='×';
+  del.onclick=e=>{e.stopPropagation();delAway(time,ai);};
+  card.appendChild(del);
+  return card;
+}
+
+function renderCoachKey(){
+  const week=WEEKS[currentWeek];const seen=new Set();
+  const scan=c=>{if(c&&c.coaches)c.coaches.forEach(x=>seen.add(x.name));};
+  Object.values(week.slots).forEach(ts=>Object.values(ts).forEach(ss=>ss.forEach(scan)));
+  Object.values(week.away||{}).forEach(arr=>arr.forEach(scan));
+  const list=document.getElementById('keyList');list.innerHTML='';
+  [...seen].sort((a,b)=>a.split(' ').pop().localeCompare(b.split(' ').pop())).forEach(name=>{
+    const item=document.createElement('div');item.className='key-item'+(hlCoach===name?' hl':'');
+    item.onclick=()=>{hlCoach=(hlCoach===name)?null:name;render();};
+    const dot=document.createElement('div');dot.className='kdot';dot.style.background=COACH_COLORS[name]||'#888';
+    const lbl=document.createElement('div');lbl.className='kname';lbl.textContent=name;
+    if(hlCoach===name)lbl.style.fontWeight='600';
+    item.appendChild(dot);item.appendChild(lbl);list.appendChild(item);
+  });
+}
+
+function renderWeekList(){
+  const panel=document.getElementById('weekListPanel');panel.innerHTML='';
+  WEEKS.forEach((w,i)=>{
+    const item=document.createElement('div');item.className='wk-item'+(i===currentWeek?' current':'');
+    item.onclick=()=>{currentWeek=i;hlCoach=null;render();};
+    const lbl=document.createElement('span');lbl.textContent=w.date.replace('Sunday ','');lbl.style.flex='1';
+    const del=document.createElement('button');del.className='wk-del';del.textContent='×';
+    del.onclick=e=>{e.stopPropagation();if(WEEKS.length>1){WEEKS.splice(i,1);if(currentWeek>=WEEKS.length)currentWeek=WEEKS.length-1;render();}};
+    item.appendChild(lbl);item.appendChild(del);panel.appendChild(item);
+  });
+}
+
+function populateDatalist(){
+  const dl=document.getElementById('coachSuggest');dl.innerHTML='';
+  Object.keys(COACH_COLORS).forEach(n=>{const o=document.createElement('option');o.value=n;dl.appendChild(o);});
+}
+
+// ── Week nav ──────────────────────────────────────────────────────────────
+function changeWeek(d){const n=currentWeek+d;if(n>=0&&n<WEEKS.length){currentWeek=n;hlCoach=null;render();}}
+function openWeekPicker(){
+  const sel=document.getElementById('weekSelect');sel.innerHTML='';
+  WEEKS.forEach((w,i)=>{const o=document.createElement('option');o.value=i;o.textContent=w.date;if(i===currentWeek)o.selected=true;sel.appendChild(o);});
+  document.getElementById('weekLabel').style.display='none';sel.classList.add('open');sel.focus();
+}
+function selectWeekFromPicker(){currentWeek=parseInt(document.getElementById('weekSelect').value);closeWeekPicker();hlCoach=null;render();}
+function closeWeekPicker(){document.getElementById('weekLabel').style.display='';document.getElementById('weekSelect').classList.remove('open');}
+
+// ── Edit mode ─────────────────────────────────────────────────────────────
+function toggleEdit(){
+  editMode=!editMode;
+  const btn=document.getElementById('editBtn');
+  btn.classList.toggle('active',editMode);
+  btn.innerHTML='<div class="tdot"></div>Edit '+(editMode?'on':'off');
+  render();
+}
+
+// ── Session modal ─────────────────────────────────────────────────────────
+function openSessModal(time,venue,editIdx,existing){
+  const isEdit=editIdx!==undefined&&existing;
+  pendingSess={time,venue,editIdx:isEdit?editIdx:null};
+  pendingCoaches=isEdit?(existing.coaches||[]).map(c=>({...c})):[];
+  document.getElementById('sessModalTitle').textContent=isEdit?'Edit session':'Add session';
+  document.getElementById('sessModalMeta').textContent=time+' · '+VL[venue];
+  document.getElementById('fAge').value=isEdit?existing.age:'';
+  document.getElementById('fPlayers').value=isEdit&&existing.players?existing.players:'';
+  document.getElementById('fDur').value=isEdit?(existing.span||3):'3';
+  selType(isEdit?existing.type:'training');
+  renderCoachRows();
+  document.getElementById('sessModal').classList.add('open');
+  setTimeout(()=>document.getElementById('fAge').focus(),80);
+}
+function closeSessModal(){document.getElementById('sessModal').classList.remove('open');pendingSess=null;}
+
+function selType(t){
+  selType_=t;
+  document.querySelectorAll('.topt').forEach(el=>el.classList.toggle('sel',el.dataset.t===t));
+}
+
+function renderCoachRows(){
+  const cont=document.getElementById('coachRows');cont.innerHTML='';
+  pendingCoaches.forEach((c,i)=>{
+    const row=document.createElement('div');row.className='cb-row';
+    const info=document.createElement('div');info.className='cb-info';
+    const rb=document.createElement('span');rb.className='cb-role-badge';rb.style.background=COACH_COLORS[c.name]||'#888';rb.textContent=c.role;
+    const nm=document.createElement('span');nm.className='cb-name-txt';nm.textContent=c.name;
+    info.appendChild(rb);info.appendChild(nm);
+    const db=document.createElement('button');db.className='cb-del';db.textContent='×';db.onclick=()=>{pendingCoaches.splice(i,1);renderCoachRows();};
+    row.appendChild(info);row.appendChild(db);cont.appendChild(row);
+  });
+}
+
+function addCoachRow(){
+  const name=document.getElementById('newCoachName').value.trim();
+  const role=document.getElementById('newCoachRole').value;
+  if(!name)return;
+  pendingCoaches.push({name,role});
+  document.getElementById('newCoachName').value='';renderCoachRows();
+}
+
+function saveSession(){
+  if(!pendingSess)return;
+  const {time,venue,editIdx}=pendingSess;
+  const age=document.getElementById('fAge').value.trim();
+  if(!age){document.getElementById('fAge').focus();return;}
+  const players=parseInt(document.getElementById('fPlayers').value)||null;
+  const span=parseFloat(document.getElementById('fDur').value);
+  const week=WEEKS[currentWeek];
+  if(!week.slots[time])week.slots[time]={};
+  if(!week.slots[time][venue])week.slots[time][venue]=[];
+  const entry={type:selType_,age,players,coaches:pendingCoaches.slice(),span};
+  if(editIdx!==null){
+    week.slots[time][venue][editIdx]=entry;
+  } else {
+    week.slots[time][venue].push(entry);
+  }
+  closeSessModal();render();
+}
+
+function delSession(time,venue,i){
+  const slots=WEEKS[currentWeek].slots;
+  slots[time][venue].splice(i,1);
+  if(!slots[time][venue].length)delete slots[time][venue];
+  render();
+}
+
+// ── Away modal ────────────────────────────────────────────────────────────
+function openAwayModal(time,editIdx,existing){
+  const isEdit=editIdx!==undefined&&existing;
+  pendingAway={time,editIdx:isEdit?editIdx:null};
+  pendingAwayCoaches=isEdit?(existing.coaches||[]).map(c=>({...c})):[];
+  document.getElementById('awayModalTitle').textContent=isEdit?'Edit away fixture':'Add away fixture';
+  document.getElementById('awayModalMeta').textContent=time;
+  document.getElementById('aAge').value=isEdit?existing.age:'';
+  document.getElementById('aPlayers').value=isEdit&&existing.players?existing.players:'';
+  document.getElementById('aOpp').value=isEdit?existing.opp:'';
+  document.getElementById('aAddr').value=isEdit?existing.addr:'';
+  document.getElementById('aPB').value=isEdit?existing.pb:'';
+  renderAwayCoachRows();
+  document.getElementById('awayModal').classList.add('open');
+  setTimeout(()=>document.getElementById('aAge').focus(),80);
+}
+function closeAwayModal(){document.getElementById('awayModal').classList.remove('open');pendingAway=null;}
+
+function renderAwayCoachRows(){
+  const cont=document.getElementById('awayCoachRows');cont.innerHTML='';
+  pendingAwayCoaches.forEach((c,i)=>{
+    const row=document.createElement('div');row.className='cb-row';
+    const info=document.createElement('div');info.className='cb-info';
+    const rb=document.createElement('span');rb.className='cb-role-badge';rb.style.background=COACH_COLORS[c.name]||'#888';rb.textContent=c.role;
+    const nm=document.createElement('span');nm.className='cb-name-txt';nm.textContent=c.name;
+    info.appendChild(rb);info.appendChild(nm);
+    const db=document.createElement('button');db.className='cb-del';db.textContent='×';db.onclick=()=>{pendingAwayCoaches.splice(i,1);renderAwayCoachRows();};
+    row.appendChild(info);row.appendChild(db);cont.appendChild(row);
+  });
+}
+function addAwayCoachRow(){
+  const name=document.getElementById('awayCoachName').value.trim();
+  const role=document.getElementById('awayCoachRole').value;
+  if(!name)return;
+  pendingAwayCoaches.push({name,role});
+  document.getElementById('awayCoachName').value='';renderAwayCoachRows();
+}
+function saveAwayFixture(){
+  if(!pendingAway)return;
+  const {time,editIdx}=pendingAway;
+  const age=document.getElementById('aAge').value.trim();
+  if(!age){document.getElementById('aAge').focus();return;}
+  const players=parseInt(document.getElementById('aPlayers').value)||null;
+  const opp=document.getElementById('aOpp').value.trim();
+  const addr=document.getElementById('aAddr').value.trim();
+  const pb=document.getElementById('aPB').value.trim();
+  const week=WEEKS[currentWeek];
+  if(!week.away)week.away={};
+  if(!week.away[time])week.away[time]=[];
+  const entry={age,players,opp,addr,pb,coaches:pendingAwayCoaches.slice()};
+  if(editIdx!==null){
+    week.away[time][editIdx]=entry;
+  } else {
+    week.away[time].push(entry);
+  }
+  closeAwayModal();render();
+}
+function delAway(time,i){
+  const away=WEEKS[currentWeek].away;
+  away[time].splice(i,1);
+  if(!away[time].length)delete away[time];
+  render();
+}
+
+// ── Add week modal ────────────────────────────────────────────────────────
+function openAddWeekModal(){document.getElementById('newWeekDate').value='';document.getElementById('weekModal').classList.add('open');setTimeout(()=>document.getElementById('newWeekDate').focus(),80);}
+function closeWeekModal(){document.getElementById('weekModal').classList.remove('open');}
+function confirmAddWeek(){
+  const date=document.getElementById('newWeekDate').value.trim();
+  if(!date)return;
+  WEEKS.push({date,slots:{},away:{}});currentWeek=WEEKS.length-1;
+  closeWeekModal();render();
+}
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────────
+document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el){closeSessModal();closeAwayModal();closeWeekModal();closeMWModal();}}));
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeSessModal();closeAwayModal();closeWeekModal();closeMWModal();}
+  if(!e.target.closest('input,select,textarea')){
+    if(e.key==='ArrowLeft')changeWeek(-1);
+    if(e.key==='ArrowRight')changeWeek(1);
+  }
+});
+
+// ── Admin unlock ─────────────────────────────────────────────────────────
+const ADMIN_PASS = 'whc2025';
+let adminUnlocked = false;
+
+function promptAdmin(){
+  if(adminUnlocked){
+    // Lock again
+    adminUnlocked = false;
+    editMode = false;
+    document.getElementById('editBtn').style.display = 'none';
+    document.getElementById('exportBtn').style.display = 'none';
+    document.getElementById('adminBtn').innerHTML = '&#9881; Admin';
+    document.getElementById('adminBtn').title = 'Admin login';
+    document.getElementById('mainGrid').classList.remove('edit-mode');
+    render();
+    return;
+  }
+  const pw = window.prompt('Enter admin password:');
+  if(pw === ADMIN_PASS){
+    adminUnlocked = true;
+    document.getElementById('editBtn').style.display = '';
+    document.getElementById('exportBtn').style.display = '';
+    document.getElementById('adminBtn').innerHTML = '&#128274; Lock';
+    document.getElementById('adminBtn').title = 'Lock editing';
+  } else if(pw !== null){
+    alert('Incorrect password.');
+  }
+}
+
+// ── Export ────────────────────────────────────────────────────────────────
+function exportFile(){
+  const src = document.documentElement.outerHTML;
+  const marker = 'const WEEKS=';
+  const start = src.indexOf(marker);
+  if(start === -1){ alert('Export failed — could not locate data block.'); return; }
+  let depth=0, i=start+marker.length, inStr=false, strChar='';
+  while(i < src.length){
+    const ch=src[i];
+    if(!inStr){
+      if(ch==='['||ch==='{') depth++;
+      else if(ch===']'||ch==='}'){ depth--; if(depth===0){i++;break;} }
+      else if(ch==='"'||ch==="'"){ inStr=true; strChar=ch; }
+    } else {
+      if(ch===strChar && src[i-1]!=='\\') inStr=false;
+    }
+    i++;
+  }
+  if(src[i]===';') i++;
+  const newSrc = src.slice(0,start) + 'const WEEKS=' + JSON.stringify(WEEKS,null,2) + ';' + src.slice(i);
+  // Also update MIDWEEKS
+  const m2='const MIDWEEKS=';
+  const ms=newSrc.indexOf(m2);
+  let finalSrc=newSrc;
+  if(ms>-1){
+    let d2=0,j=ms+m2.length,inS2=false,sC2='';
+    while(j<newSrc.length){const ch=newSrc[j];if(!inS2){if(ch==='['||ch==='{')d2++;else if(ch===']'||ch==='}'){d2--;if(d2===0){j++;break;}}else if(ch==='"'||ch==="'"){inS2=true;sC2=ch;}}else{if(ch===sC2&&newSrc[j-1]!=='\\')inS2=false;}j++;}
+    if(newSrc[j]===';')j++;
+    finalSrc=newSrc.slice(0,ms)+'const MIDWEEKS='+JSON.stringify(MIDWEEKS,null,2)+';'+newSrc.slice(j);
+  }
+  const blob = new Blob([finalSrc],{type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url;
+  const dp = WEEKS[currentWeek].date.replace(/[^a-zA-Z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+  a.download = 'whc-pitch-planner-' + dp + '.html';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  const btn=document.getElementById('exportBtn');
+  const orig=btn.innerHTML;
+  btn.innerHTML='&#10003; Saved!'; btn.style.color='var(--green-d)';
+  setTimeout(()=>{btn.innerHTML=orig;btn.style.color='';},2000);
+}
+
+
+// ── View toggle ─────────────────────────────────────────────────────────
+let currentView='sunday';
+let currentMWWeek=0;
+const DAYS=['monday','tuesday','wednesday','thursday','friday'];
+const DAY_LABELS={monday:'Monday',tuesday:'Tuesday',wednesday:'Wednesday',thursday:'Thursday',friday:'Friday'};
+
+function switchView(v){
+  currentView=v;
+  document.getElementById('tabSun').classList.toggle('active',v==='sunday');
+  document.getElementById('tabMid').classList.toggle('active',v==='midweek');
+  document.getElementById('hdrTitle').textContent=v==='sunday'?'Sunday Pitch Planner':'Midweek Programme';
+  document.querySelector('.page-body').style.display=v==='sunday'?'flex':'none';
+  document.getElementById('mwWrap').classList.toggle('visible',v==='midweek');
+  document.getElementById('editBtn').style.display=v==='sunday'?'':'none';
+  if(v==='midweek') renderMidweek();
+}
+
+function changeMWWeek(d){
+  const n=currentMWWeek+d;
+  if(n>=0&&n<MIDWEEKS.length){currentMWWeek=n;renderMidweek();}
+}
+
+function renderMidweek(){
+  const wk=MIDWEEKS[currentMWWeek];
+  document.getElementById('mwWeekLabel').textContent=wk.week;
+  const grid=document.getElementById('dayGrid');
+  grid.innerHTML='';
+
+  DAYS.forEach(dayKey=>{
+    const day=wk.days[dayKey];
+    if(!day)return;
+    const col=document.createElement('div');
+    col.className='day-col';
+
+    const hdr=document.createElement('div');
+    hdr.className='day-hdr';
+    const dn=document.createElement('div');dn.className='day-name';dn.textContent=DAY_LABELS[dayKey];
+    const dd=document.createElement('div');dd.className='day-date';dd.textContent=day.date;
+    hdr.appendChild(dn);hdr.appendChild(dd);
+    col.appendChild(hdr);
+
+    const body=document.createElement('div');
+    body.className='day-body';
+
+    day.sessions.forEach(sess=>{
+      const card=document.createElement('div');
+      card.className='mw-card '+sess.type;
+      if(hlMWCoach&&sess.coaches&&sess.coaches.some(c=>c.name===hlMWCoach))card.classList.add('hl-card');
+
+      const timeEl=document.createElement('div');timeEl.className='mw-time';
+      timeEl.textContent=sess.time+' – '+sess.end;
+      card.appendChild(timeEl);
+
+      const venueEl=document.createElement('span');venueEl.className='mw-venue';
+      venueEl.textContent=sess.venue;
+      card.appendChild(venueEl);
+
+      const ageRow=document.createElement('div');ageRow.className='mw-age';
+      const ageTxt=document.createElement('span');ageTxt.textContent=sess.age;
+      ageRow.appendChild(ageTxt);
+      if(sess.players){
+        const pc=document.createElement('span');pc.className='player-count';pc.textContent=sess.players;
+        ageRow.appendChild(pc);
+      }
+      card.appendChild(ageRow);
+
+      if(sess.coaches&&sess.coaches.length){
+        const tags=document.createElement('div');tags.className='mw-coaches';
+        sess.coaches.forEach(c=>{
+          const tag=document.createElement('span');tag.className='ctag';
+          tag.style.background=COACH_COLORS[c.name]||'#888';
+          const rs=document.createElement('span');rs.className='ctag-role';rs.textContent=c.role;
+          tag.appendChild(rs);tag.appendChild(document.createTextNode(c.name));
+          tags.appendChild(tag);
+        });
+        card.appendChild(tags);
+      }
+
+      if(sess.notes){
+        const notes=document.createElement('div');notes.className='mw-notes';
+        notes.textContent=sess.notes;
+        card.appendChild(notes);
+      }
+
+      if(adminUnlocked){
+        const editBtn=document.createElement('button');
+        editBtn.className='sdel';editBtn.style.right='20px';editBtn.title='Edit';
+        editBtn.innerHTML='&#9998;';
+        editBtn.onclick=e=>{e.stopPropagation();openMWModal(dayKey,si,sess);};
+        card.appendChild(editBtn);
+        const delBtn=document.createElement('button');
+        delBtn.className='sdel';delBtn.title='Delete';delBtn.textContent='×';
+        delBtn.onclick=e=>{e.stopPropagation();delMWSession(dayKey,si);};
+        card.appendChild(delBtn);
+        card.style.paddingRight='38px';
+        editBtn.style.display='flex';
+        delBtn.style.display='flex';
+      }
+
+      body.appendChild(card);
+    });
+
+    if(adminUnlocked){
+      const addBtn=document.createElement('div');
+      addBtn.className='add-card';addBtn.textContent='+';
+      addBtn.style.display='flex';
+      addBtn.onclick=()=>openMWModal(dayKey,null,null);
+      body.appendChild(addBtn);
+    }
+
+    col.appendChild(body);
+    grid.appendChild(col);
+  });
+
+  grid.classList.toggle('dim',!!hlMWCoach);
+  renderMWCoachKey();
+  renderMWWeekList();
+}
+
+// ── Midweek coach key & week list ─────────────────────────────────────────
+let hlMWCoach=null;
+
+function renderMWCoachKey(){
+  const wk=MIDWEEKS[currentMWWeek];
+  const seen=new Set();
+  Object.values(wk.days).forEach(day=>{
+    if(day&&day.sessions) day.sessions.forEach(s=>{
+      if(s.coaches) s.coaches.forEach(c=>seen.add(c.name));
+    });
+  });
+  const list=document.getElementById('mwKeyList');
+  if(!list)return;
+  list.innerHTML='';
+  [...seen].sort((a,b)=>a.split(' ').pop().localeCompare(b.split(' ').pop())).forEach(name=>{
+    const item=document.createElement('div');
+    item.className='key-item'+(hlMWCoach===name?' hl':'');
+    item.onclick=()=>{hlMWCoach=(hlMWCoach===name)?null:name;renderMidweek();};
+    const dot=document.createElement('div');dot.className='kdot';
+    dot.style.background=COACH_COLORS[name]||'#888';
+    const lbl=document.createElement('div');lbl.className='kname';lbl.textContent=name;
+    if(hlMWCoach===name)lbl.style.fontWeight='600';
+    item.appendChild(dot);item.appendChild(lbl);
+    list.appendChild(item);
+  });
+}
+
+function renderMWWeekList(){
+  const panel=document.getElementById('mwWeekListPanel');
+  if(!panel)return;
+  panel.innerHTML='';
+  MIDWEEKS.forEach((w,i)=>{
+    const item=document.createElement('div');
+    item.className='wk-item'+(i===currentMWWeek?' current':'');
+    item.onclick=()=>{currentMWWeek=i;hlMWCoach=null;renderMidweek();};
+    const lbl=document.createElement('span');
+    lbl.textContent=w.week.replace('Week of ','');lbl.style.flex='1';
+    item.appendChild(lbl);panel.appendChild(item);
+  });
+}
+
+// ── Midweek modal ─────────────────────────────────────────────────────────
+let pendingMW=null, mwSelType='training', mwPendingCoaches=[];
+
+function openMWModal(dayKey, editIdx, existing){
+  const isEdit=editIdx!==null&&existing;
+  pendingMW={dayKey,editIdx:isEdit?editIdx:null};
+  mwPendingCoaches=isEdit?(existing.coaches||[]).map(c=>({...c})):[];
+  document.getElementById('mwModalTitle').textContent=isEdit?'Edit session':'Add session';
+  const day=MIDWEEKS[currentMWWeek].days[dayKey];
+  document.getElementById('mwModalMeta').textContent=DAY_LABELS[dayKey]+' · '+day.date;
+  document.getElementById('mwAge').value=isEdit?existing.age:'';
+  document.getElementById('mwPlayers').value=isEdit&&existing.players?existing.players:'';
+  document.getElementById('mwStart').value=isEdit?existing.time:'';
+  document.getElementById('mwEnd').value=isEdit?existing.end:'';
+  document.getElementById('mwVenue').value=isEdit?existing.venue:'RPHS';
+  document.getElementById('mwNotes').value=isEdit?existing.notes:'';
+  selMWType(isEdit?existing.type:'training');
+  renderMWCoachRows();
+  document.getElementById('mwModal').classList.add('open');
+  setTimeout(()=>document.getElementById('mwAge').focus(),80);
+}
+function closeMWModal(){document.getElementById('mwModal').classList.remove('open');pendingMW=null;}
+
+function selMWType(t){
+  mwSelType=t;
+  document.querySelectorAll('#mwModal .topt').forEach(el=>el.classList.toggle('sel',el.dataset.t===t));
+}
+
+function renderMWCoachRows(){
+  const cont=document.getElementById('mwCoachRows');cont.innerHTML='';
+  mwPendingCoaches.forEach((c,i)=>{
+    const row=document.createElement('div');row.className='cb-row';
+    const info=document.createElement('div');info.className='cb-info';
+    const rb=document.createElement('span');rb.className='cb-role-badge';rb.style.background=COACH_COLORS[c.name]||'#888';rb.textContent=c.role;
+    const nm=document.createElement('span');nm.className='cb-name-txt';nm.textContent=c.name;
+    info.appendChild(rb);info.appendChild(nm);
+    const db=document.createElement('button');db.className='cb-del';db.textContent='×';
+    db.onclick=()=>{mwPendingCoaches.splice(i,1);renderMWCoachRows();};
+    row.appendChild(info);row.appendChild(db);cont.appendChild(row);
+  });
+}
+function addMWCoachRow(){
+  const name=document.getElementById('mwCoachName').value.trim();
+  const role=document.getElementById('mwCoachRole').value;
+  if(!name)return;
+  mwPendingCoaches.push({name,role});
+  document.getElementById('mwCoachName').value='';
+  renderMWCoachRows();
+}
+function saveMWSession(){
+  if(!pendingMW)return;
+  const {dayKey,editIdx}=pendingMW;
+  const age=document.getElementById('mwAge').value.trim();
+  if(!age){document.getElementById('mwAge').focus();return;}
+  const entry={
+    age,
+    players:parseInt(document.getElementById('mwPlayers').value)||null,
+    time:document.getElementById('mwStart').value.trim(),
+    end:document.getElementById('mwEnd').value.trim(),
+    venue:document.getElementById('mwVenue').value.trim()||'RPHS',
+    type:mwSelType,
+    coaches:mwPendingCoaches.slice(),
+    notes:document.getElementById('mwNotes').value.trim()
+  };
+  const sessions=MIDWEEKS[currentMWWeek].days[dayKey].sessions;
+  if(editIdx!==null){sessions[editIdx]=entry;}
+  else{sessions.push(entry);}
+  closeMWModal();renderMidweek();
+}
+function delMWSession(dayKey,i){
+  MIDWEEKS[currentMWWeek].days[dayKey].sessions.splice(i,1);
+  renderMidweek();
+}
+
+// ── Auto-select current week ─────────────────────────────────────────────
+function autoSelectWeek() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  
+  // Parse "Sunday DD Month YYYY" or "Week of DD Month YYYY"
+  function parseDate(str) {
+    const months = {January:0,February:1,March:2,April:3,May:4,June:5,
+      July:6,August:7,September:8,October:9,November:10,December:11};
+    const m = str.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
+    if (!m) return null;
+    return new Date(parseInt(m[3]), months[m[2]], parseInt(m[1]));
+  }
+
+  // Find the Sunday week whose date is closest to today (on or before)
+  let bestIdx = 0;
+  let bestDiff = Infinity;
+  WEEKS.forEach((w, i) => {
+    const d = parseDate(w.date);
+    if (!d) return;
+    const diff = today - d; // positive = date is in past, negative = future
+    // Prefer the week that just passed or is today (smallest non-negative diff)
+    if (diff >= 0 && diff < bestDiff) {
+      bestDiff = diff;
+      bestIdx = i;
+    }
+  });
+  currentWeek = bestIdx;
+
+  // Same for midweek
+  let mwBest = 0, mwBestDiff = Infinity;
+  MIDWEEKS.forEach((w, i) => {
+    const d = parseDate(w.week);
+    if (!d) return;
+    const diff = today - d;
+    if (diff >= 0 && diff < mwBestDiff) {
+      mwBestDiff = diff;
+      mwBest = i;
+    }
+  });
+  currentMWWeek = mwBest;
+}
+
+// Also update the page-body display logic in render() — wrap it
+const _origRender=render;
+render=function(){
+  if(currentView==='sunday') _origRender();
+};
+
+autoSelectWeek();
+
+// Update heading week tag
+function updateHeadingTag() {
+  const tag = document.getElementById('headingWeekTag');
+  if (!tag) return;
+  if (currentView === 'sunday') {
+    tag.textContent = WEEKS[currentWeek] ? WEEKS[currentWeek].date : '';
+  } else {
+    tag.textContent = MIDWEEKS[currentMWWeek] ? MIDWEEKS[currentMWWeek].week : '';
+  }
+}
+
+// Patch switchView to update heading
+const _origSwitchView = switchView;
+switchView = function(v) {
+  _origSwitchView(v);
+  updateHeadingTag();
+};
+
+render();
+updateHeadingTag();
+</script>
+</body>
+</html>
