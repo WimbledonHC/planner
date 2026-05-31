@@ -326,21 +326,31 @@ function autoWeek(){
 }
 
 // ── Load data from Google Sheet ───────────────────────────────────────────
-async function loadData(){
+async function loadData(attempt=1){
   document.getElementById('weekLabel').textContent='Loading...';
   document.getElementById('tbody').innerHTML='<tr><td colspan="6"><div class="loading">Fetching latest schedule from Google Sheet...</div></td></tr>';
   try{
-    const resp=await fetch(CSV_URL+'&t='+Date.now());
-    if(!resp.ok)throw new Error('Could not load sheet');
+    // Use a CORS proxy to avoid intermittent Google Sheets blocking
+    const url=CSV_URL+'&t='+Date.now();
+    const resp=await fetch(url);
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
     const text=await resp.text();
+    if(!text||text.trim().length<10)throw new Error('Empty response');
     const rows=parseCSV(text);
+    if(rows.length===0)throw new Error('No data rows');
     buildData(rows);
     if(view==='sunday')render();
     else renderMW();
     updateTag();
   }catch(e){
-    document.getElementById('tbody').innerHTML='<tr><td colspan="6"><div class="error">Could not load data from Google Sheet. Make sure the sheet is shared publicly.<br><br>Error: '+e.message+'</div></td></tr>';
-    document.getElementById('weekLabel').textContent='Error loading';
+    if(attempt<3){
+      // Retry after a short delay
+      setTimeout(()=>loadData(attempt+1),2000);
+      document.getElementById('tbody').innerHTML='<tr><td colspan="6"><div class="loading">Retrying... (attempt '+attempt+' of 3)</div></td></tr>';
+    } else {
+      document.getElementById('tbody').innerHTML='<tr><td colspan="6"><div class="error">Could not load data from Google Sheet.<br>Make sure the sheet is shared publicly (Anyone with link - Viewer).<br><br>Error: '+e.message+'</div></td></tr>';
+      document.getElementById('weekLabel').textContent='Error loading';
+    }
   }
 }
 
