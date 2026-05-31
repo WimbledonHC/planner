@@ -194,22 +194,62 @@ function normaliseTime(t){
 
 // ── Parse CSV ─────────────────────────────────────────────────────────────
 function parseCSV(text){
-  const lines=text.split('\n');
-  const headers=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+  // Robust CSV parser handling quoted fields with commas and newlines
   const rows=[];
-  for(let i=1;i<lines.length;i++){
-    if(!lines[i].trim())continue;
-    const vals=[];
-    let cur='',inQ=false;
-    for(let c=0;c<lines[i].length;c++){
-      const ch=lines[i][c];
-      if(ch==='"'){inQ=!inQ;}
-      else if(ch===','&&!inQ){vals.push(cur.trim());cur='';}
-      else cur+=ch;
+  let headers=null;
+  let pos=0;
+  const len=text.length;
+  
+  function parseField(){
+    if(pos>=len)return'';
+    if(text[pos]==='"'){
+      pos++; // skip opening quote
+      let val='';
+      while(pos<len){
+        if(text[pos]==='"'){
+          if(text[pos+1]==='"'){val+='"';pos+=2;} // escaped quote
+          else{pos++;break;} // closing quote
+        } else {
+          val+=text[pos++];
+        }
+      }
+      return val.trim();
+    } else {
+      let val='';
+      while(pos<len&&text[pos]!==','&&text[pos]!=='\n'&&text[pos]!=='\r'){
+        val+=text[pos++];
+      }
+      return val.trim();
     }
-    vals.push(cur.trim());
+  }
+  
+  function parseLine(){
+    const fields=[];
+    while(pos<len&&text[pos]!=='\n'&&text[pos]!=='\r'){
+      fields.push(parseField());
+      if(pos<len&&text[pos]===',')pos++;
+    }
+    // skip \r\n or \n
+    if(pos<len&&text[pos]==='\r')pos++;
+    if(pos<len&&text[pos]==='\n')pos++;
+    return fields;
+  }
+  
+  // Parse headers
+  headers=parseLine();
+  headers=headers.map(h=>h.replace(/^"|"$/g,'').trim());
+  
+  // Parse data rows
+  while(pos<len){
+    if(text[pos]==='\n'||text[pos]==='\r'){
+      if(text[pos]==='\r')pos++;
+      if(pos<len&&text[pos]==='\n')pos++;
+      continue;
+    }
+    const vals=parseLine();
+    if(vals.every(v=>!v))continue;
     const row={};
-    headers.forEach((h,idx)=>row[h]=vals[idx]||'');
+    headers.forEach((h,idx)=>{row[h]=vals[idx]||'';});
     rows.push(row);
   }
   return rows;
