@@ -262,7 +262,15 @@ function buildData(rows){
   const midweekWeeks={};
 
   rows.forEach(row=>{
-    const view=(row['View']||row['view']||'').toLowerCase().trim();
+    // Check View column first, then Notes, then any column containing sunday/midweek
+    let view=(row['View']||row['view']||'').toLowerCase().trim();
+    if(!view||view===''){
+      // Fallback: scan all columns for sunday/midweek
+      for(const key of Object.keys(row)){
+        const val=(row[key]||'').toLowerCase().trim();
+        if(val==='sunday'||val==='midweek'){view=val;break;}
+      }
+    }
     const date=(row['Date']||'').trim();
     const day=(row['Day']||'').trim();
     const time=normaliseTime((row['Time']||'').trim());
