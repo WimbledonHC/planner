@@ -169,6 +169,7 @@ tr:last-child td{border-bottom:none;}
 <script>
 const SHEET_ID = '1Knu4uQ7Ko76xgiPNES25m5Q_Yo5EFW5bZPDxgCU70hs';
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+const JSON_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
 
 const TIMES_RAW=['8:00am','8:30am','9:00am','9:30am','10:00am','10:30am','11:00am','11:30am','12:00pm','12:30pm','1:00pm','1:30pm','2:00pm','2:30pm','3:00pm','3:30pm','4:00pm','4:30pm','5:00pm','5:15pm','5:30pm','6:00pm','6:30pm','7:00pm','7:15pm','7:30pm','8:00pm','8:30pm','9:00pm','9:30pm'];
 // Build dynamic TIMES from actual data after loading
@@ -378,28 +379,64 @@ async function loadData(attempt=1){
   document.getElementById('weekLabel').textContent='Loading...';
   document.getElementById('tbody').innerHTML='<tr><td colspan="6"><div class="loading">Fetching latest schedule from Google Sheet...</div></td></tr>';
   try{
-    // Use a CORS proxy to avoid intermittent Google Sheets blocking
-    const url=CSV_URL+'&t='+Date.now();
+    // Use Google Visualization JSON API - more reliable than CSV export
+    const url=JSON_URL+'&t='+Date.now();
     const resp=await fetch(url);
     if(!resp.ok)throw new Error('HTTP '+resp.status);
     const text=await resp.text();
-    if(!text||text.trim().length<10)throw new Error('Empty response');
-    const rows=parseCSV(text);
-    if(rows.length===0)throw new Error('No data rows');
+    // Response is wrapped in google.visualization.Query.setResponse(...)
+    const json=JSON.parse(text.replace(/^.*?\(/, '').replace(/\);?\s*$/, ''));
+    const rows=parseGVizJSON(json);
+    if(rows.length===0)throw new Error('No data rows found in sheet');
     buildData(rows);
     if(view==='sunday')render();
     else renderMW();
     updateTag();
   }catch(e){
     if(attempt<3){
-      // Retry after a short delay
       setTimeout(()=>loadData(attempt+1),2000);
-      document.getElementById('tbody').innerHTML='<tr><td colspan="6"><div class="loading">Retrying... (attempt '+attempt+' of 3)</div></td></tr>';
+      document.getElementById('tbody').innerHTML='<tr><td colspan="6"><div class="loading">Retrying... ('+attempt+'/3)</div></td></tr>';
     } else {
-      document.getElementById('tbody').innerHTML='<tr><td colspan="6"><div class="error">Could not load data from Google Sheet.<br>Make sure the sheet is shared publicly (Anyone with link - Viewer).<br><br>Error: '+e.message+'</div></td></tr>';
+      // Fallback to CSV
+      try{
+        const resp2=await fetch(CSV_URL+'&t='+Date.now());
+        const text2=await resp2.text();
+        const rows2=parseCSV(text2);
+        if(rows2.length>0){buildData(rows2);if(view==='sunday')render();else renderMW();updateTag();return;}
+      }catch(e2){}
+      document.getElementById('tbody').innerHTML='<tr><td colspan="6"><div class="error">Could not load data from Google Sheet.<br>Make sure it is shared: Share → Anyone with link → Viewer<br><br>'+e.message+'</div></td></tr>';
       document.getElementById('weekLabel').textContent='Error loading';
     }
   }
+}
+
+function parseGVizJSON(json){
+  const cols=json.table.cols.map(c=>c.label||c.id);
+  const rows=[];
+  (json.table.rows||[]).forEach(r=>{
+    const row={};
+    cols.forEach((col,i)=>{
+      const cell=r.c&&r.c[i];
+      if(!cell||cell.v===null||cell.v===undefined){row[col]='';return;}
+      // Dates come as 'Date(2025,4,31)' format - convert to DD/MM/YYYY
+      if(typeof cell.v==='string'&&cell.v.startsWith('Date(')){
+        const m=cell.v.match(/Date\((\d+),(\d+),(\d+)\)/);
+        if(m){const y=m[1],mo=String(parseInt(m[2])+1).padStart(2,'0'),d=String(m[3]).padStart(2,'0');row[col]=d+'/'+mo+'/'+y;return;}
+      }
+      // Times come as decimal fractions of a day - convert to HH:MM am/pm
+      if(typeof cell.v==='number'&&cell.v>=0&&cell.v<1&&col.toLowerCase().includes('time')){
+        const totalMins=Math.round(cell.v*24*60);
+        const h=Math.floor(totalMins/60),mn=totalMins%60;
+        const ap=h<12?'am':'pm';
+        const h12=h===0?12:h>12?h-12:h;
+        row[col]=h12+':'+(mn<10?'0':'')+mn+ap;
+        return;
+      }
+      row[col]=cell.f||String(cell.v);
+    });
+    if(Object.values(row).some(v=>v))rows.push(row);
+  });
+  return rows;
 }
 
 // ── Render Sunday grid ────────────────────────────────────────────────────
