@@ -170,7 +170,9 @@ tr:last-child td{border-bottom:none;}
 const SHEET_ID = '1Knu4uQ7Ko76xgiPNES25m5Q_Yo5EFW5bZPDxgCU70hs';
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
 
-const TIMES=['8:00am','8:30am','9:00am','9:30am','10:00am','10:30am','11:00am','11:30am','12:00pm','12:30pm','1:00pm','1:30pm','2:00pm','2:30pm','3:00pm','3:30pm','4:00pm','4:30pm','5:00pm','5:15pm','5:30pm','6:00pm','6:30pm','7:00pm','7:15pm','7:30pm','8:00pm','8:30pm','9:00pm','9:30pm'];
+const TIMES_RAW=['8:00am','8:30am','9:00am','9:30am','10:00am','10:30am','11:00am','11:30am','12:00pm','12:30pm','1:00pm','1:30pm','2:00pm','2:30pm','3:00pm','3:30pm','4:00pm','4:30pm','5:00pm','5:15pm','5:30pm','6:00pm','6:30pm','7:00pm','7:15pm','7:30pm','8:00pm','8:30pm','9:00pm','9:30pm'];
+// Build dynamic TIMES from actual data after loading
+let TIMES=TIMES_RAW.slice();
 const VENUES=['whs','rphs','kcs_pp','kcs_tt'];
 const VENUE_MAP={'WHS':'whs','RPHS':'rphs','KCS PP':'kcs_pp','KCS TT':'kcs_tt','KCS-PP':'kcs_pp','KCS-TT':'kcs_tt','KCS — PP':'kcs_pp','KCS — TT':'kcs_tt'};
 const DAYS=['monday','tuesday','wednesday','thursday','friday'];
@@ -180,6 +182,15 @@ const DAY_MAP={'monday':'monday','tuesday':'tuesday','wednesday':'wednesday','th
 const CC={"Joe Tait":"#7d6608","Scarlett Ames":"#c0392b","Krish Gunatunga":"#0e6655","Amelie Rees":"#1a6b8a","Ritika Punukollu":"#7b2d8b","Antonia Ridley":"#b03a6b","Ryan Lees":"#1a5276","Becky Manton":"#0e9183","Jimmy Culnane":"#515a5a","Frankie Tarren":"#4a6a2a","Calum MacDonald":"#1a4a7a","Callum MacKenzie":"#5a3a8a","Roddy Cameron":"#7a4a1a","JJ Lankfer":"#3a6a4a","Georgia Hodgson":"#2d7a2d","Annie Price":"#c47a00","Alex Sheldon":"#8e3a1a","Anna Toman":"#7a3a6b","Fin Hurst":"#117a65","Ben Fox":"#ba4a00","Nina Dickinson":"#e74c3c","Lucy Holder":"#c0392b","Fred Newbold":"#b9770e","Charlotte Lee":"#1d8348","Bronwyn Shields":"#6c3483","Jason Stiff":"#a04000","Euan Gilmour":"#2471a3","James Price":"#1e8449","James Vallely":"#7d3c98","Alex Wilson":"#d68910"};
 
 let allRows=[], WEEKS=[], MIDWEEKS=[], cw=0, cmw=0, hl=null, hlmw=null, view='sunday';
+
+function normaliseTime(t){
+  if(!t)return t;
+  // Convert '9:00 AM' or '9:00AM' to '9:00am', '10:00 PM' to '10:00pm'
+  const m=t.match(/(\d+):(\d+)\s*(AM|PM|am|pm)/i);
+  if(!m)return t;
+  const h=parseInt(m[1]),mn=m[2],ap=m[3].toLowerCase();
+  return h+':'+mn+ap;
+}
 
 // ── Parse CSV ─────────────────────────────────────────────────────────────
 function parseCSV(text){
@@ -214,8 +225,8 @@ function buildData(rows){
     const view=(row['View']||row['view']||'').toLowerCase().trim();
     const date=(row['Date']||'').trim();
     const day=(row['Day']||'').trim();
-    const time=(row['Time']||'').trim();
-    const endTime=(row['End Time']||'').trim();
+    const time=normaliseTime((row['Time']||'').trim());
+    const endTime=normaliseTime((row['End Time']||'').trim());
     const venueRaw=(row['Venue']||'').trim();
     const session=(row['Session']||'').trim();
     const players=parseInt(row['Players'])||null;
@@ -272,9 +283,11 @@ function calcSpan(start,end){
 
 function timeToMins(t){
   if(!t)return 0;
-  const m=t.match(/(\d+):(\d+)(am|pm)/i);
+  // Normalise: remove spaces, lowercase — handles '9:00 AM', '9:00am', '09:00 AM'
+  const tn=t.replace(/\s+/g,'').toLowerCase();
+  const m=tn.match(/(\d+):(\d+)(am|pm)/);
   if(!m)return 0;
-  let h=parseInt(m[1]),mn=parseInt(m[2]),ap=m[3].toLowerCase();
+  let h=parseInt(m[1]),mn=parseInt(m[2]),ap=m[3];
   if(ap==='pm'&&h!==12)h+=12;
   if(ap==='am'&&h===12)h=0;
   return h*60+mn;
@@ -339,10 +352,14 @@ function render(){
   const tb=document.getElementById('tbody');tb.innerHTML='';
   const occ={};VENUES.forEach(v=>{occ[v]={};});
 
-  TIMES.forEach((time,ti)=>{
-    // Only show times that have sessions or are between first and last session
+  // Build time list from actual slot times in this week
+  const slotTimes=Object.keys(wk.slots||{});
+  // Merge with TIMES_RAW and sort by minutes
+  const allTimes=[...new Set([...TIMES_RAW,...slotTimes])].sort((a,b)=>timeToMins(a)-timeToMins(b));
+  
+  allTimes.forEach((time,ti)=>{
     const hasSessions=VENUES.some(v=>(wk.slots[time]&&wk.slots[time][v]&&wk.slots[time][v].length));
-    if(!hasSessions&&!isInRange(time,wk))return;
+    if(!hasSessions&&!isInRange(time,wk,allTimes))return;
 
     const tr=document.createElement('tr');
     const tc=document.createElement('td');tc.className='tc';tc.textContent=time;tr.appendChild(tc);
@@ -397,11 +414,10 @@ function render(){
   renderKey();renderWkList();
 }
 
-function isInRange(time,wk){
-  const allTimes=Object.keys(wk.slots||{});
-  if(!allTimes.length)return false;
-  const tMins=TIMES.map(timeToMins);
-  const sessionMins=allTimes.map(timeToMins).filter(Boolean);
+function isInRange(time,wk,allTimes){
+  const slotTimes=Object.keys(wk.slots||{});
+  if(!slotTimes.length)return false;
+  const sessionMins=slotTimes.map(timeToMins).filter(Boolean);
   if(!sessionMins.length)return false;
   const min=Math.min(...sessionMins),max=Math.max(...sessionMins)+90;
   const t=timeToMins(time);
